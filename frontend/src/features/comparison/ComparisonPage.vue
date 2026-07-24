@@ -1,0 +1,1 @@
+<template><section><div class="page-header"><p class="card-kicker">第二阶段功能入口</p><h1>横评</h1><p>这里保留稳定的占位页面和接口，后续可接入多商品维度比较。</p></div><div class="panel"><h2>功能准备中</h2><p>第一版只验证从单个商品结果进入横评的链路，不实现完整横评算法。</p></div></section></template>

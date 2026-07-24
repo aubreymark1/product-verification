@@ -1,0 +1,18 @@
+{
+  "items": [
+    {
+      "video_id": "video_demo",
+      "title": "演示视频：通用商品验真",
+      "video_url": null,
+      "duration": 30,
+      "objects": [
+        {
+          "object_id": "object_demo_001",
+          "category_id": "demo_category",
+          "label": "示例商品",
+          "bbox": {"x": 0.22, "y": 0.25, "width": 0.38, "height": 0.34}
+        }
+      ]
+    }
+  ]
+}

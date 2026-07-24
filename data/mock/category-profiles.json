@@ -1,0 +1,21 @@
+{
+  "items": [
+    {
+      "category_id": "demo_category",
+      "category_name": "示例商品",
+      "condition_fields": [
+        {"key": "usage_scene", "label": "使用场景", "type": "single_select", "required": true, "options": ["场景A", "场景B"]},
+        {"key": "concerns", "label": "重点关注", "type": "multi_select", "required": false, "options": ["维度A", "维度B"]},
+        {"key": "usage_years", "label": "预计使用年限", "type": "number", "required": false, "min": 0, "max": 20},
+        {"key": "notes", "label": "补充说明", "type": "text", "required": false},
+        {"key": "accept_uncertainty", "label": "接受存在待确认项", "type": "boolean", "required": true}
+      ],
+      "verification_dimensions": [
+        {"key": "identity", "label": "身份验真"},
+        {"key": "support", "label": "宣传验真"},
+        {"key": "risk", "label": "风险验真"},
+        {"key": "fit", "label": "场景适配"}
+      ]
+    }
+  ]
+}

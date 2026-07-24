@@ -1,0 +1,26 @@
+{
+  "items": [
+    {
+      "result_id": "result_demo_001",
+      "product_id": "demo_product_001",
+      "product": {"product_id": "demo_product_001", "product_name": "商品A", "confidence": 0.91, "image_url": null},
+      "conditions": {},
+      "summary": "当前演示证据支持进行初步判断，但仍有项目需要确认。",
+      "support": [{"id": "support_demo_001", "claim": "示例商品的身份信息存在演示用支持证据。", "source_ids": ["evidence_demo_support"], "confidence": 0.88}],
+      "risks": [{"id": "risk_demo_001", "claim": "示例商品存在需要持续观察的演示用风险项。", "source_ids": ["evidence_demo_risk"], "confidence": 0.71}],
+      "uncertain": [{"id": "uncertain_demo_001", "claim": "当前证据不足以完成全部身份确认。", "source_ids": ["evidence_demo_uncertain"], "confidence": 0.42}],
+      "confidence": 0.76
+    }
+    ,{
+      "result_id": "result_demo_002",
+      "product_id": "demo_product_002",
+      "product": {"product_id": "demo_product_002", "product_name": "商品B", "confidence": 0.63, "image_url": null},
+      "conditions": {},
+      "summary": "当前演示证据支持进行初步判断，但仍有项目需要确认。",
+      "support": [{"id": "support_demo_002", "claim": "候选商品存在演示用支持证据。", "source_ids": ["evidence_demo_support"], "confidence": 0.62}],
+      "risks": [{"id": "risk_demo_002", "claim": "候选商品存在需要持续观察的演示用风险项。", "source_ids": ["evidence_demo_risk"], "confidence": 0.55}],
+      "uncertain": [{"id": "uncertain_demo_002", "claim": "当前证据不足以完成全部身份确认。", "source_ids": ["evidence_demo_uncertain"], "confidence": 0.42}],
+      "confidence": 0.56
+    }
+  ]
+}
