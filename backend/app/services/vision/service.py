@@ -16,6 +16,7 @@ from app.services.retrieval import (
     configured_product_image_provider,
 )
 from app.services.vision.frame_source import VideoFrameSource
+from app.services.vision.frame_pack import FrameReference
 from app.services.vision.openai_provider import OpenAIVisionProvider, VisionAnalysis
 
 
@@ -53,7 +54,12 @@ class VisionService:
         category_id = str(detected_object["category_id"])
         profile = self.store.find_by_id("category-profiles.json", "category_id", category_id)
 
-        analysis = self._real_analysis(request.video_id)
+        context_text = request.context_text.strip() or settings.openai_vision_context
+        analysis = self._real_analysis(
+            request.video_id,
+            context_text,
+            request.selection.model_dump(),
+        )
         visual_attributes = {
             "object_id": str(detected_object["object_id"]),
             "selection_status": "mock_identified",
@@ -102,23 +108,50 @@ class VisionService:
             category_id=category_id,
             category_name=str(profile["category_name"]),
             visual_attributes=visual_attributes,
-            candidates=self.matcher.match(candidates),
+            candidates=self.matcher.match(
+                candidates,
+                context_text=context_text,
+                brand=analysis.brand if analysis is not None else "",
+                model=analysis.model if analysis is not None else "",
+            ),
         )
 
-    def _real_analysis(self, video_id: str) -> VisionAnalysis | None:
+    def _real_analysis(
+        self,
+        video_id: str,
+        context_text: str = "",
+        selection: Mapping[str, float] | None = None,
+    ) -> VisionAnalysis | None:
         if self.provider is None:
             return None
         frames = self.frame_source.frames_for(video_id)
         if not frames:
             return None
         return self.fallback_provider.execute(
-            lambda: self.provider.analyze_frame_pack(
-                frames,
-                context_text=settings.openai_vision_context,
-            ),
+            lambda: self._analyze_frame_pack(frames, context_text, selection),
             lambda _error: None,
             timeout_seconds=settings.openai_timeout_seconds,
         )
+
+    def _analyze_frame_pack(
+        self,
+        frames: list[FrameReference],
+        context_text: str,
+        selection: Mapping[str, float] | None,
+    ) -> VisionAnalysis | object:
+        """Keep older replaceable providers working while adding selection crops."""
+        if self.provider is None:
+            return None
+        try:
+            return self.provider.analyze_frame_pack(
+                frames,
+                context_text=context_text,
+                selection=selection,
+            )
+        except TypeError as error:
+            if "selection" not in str(error):
+                raise
+            return self.provider.analyze_frame_pack(frames, context_text=context_text)
 
     @staticmethod
     def _configured_provider() -> OpenAIVisionProvider | None:
@@ -144,9 +177,21 @@ class VisionService:
                 best_overlap = overlap
                 best_object = candidate
 
-        if best_object is None:
-            raise FileNotFoundError("Selection does not overlap a detectable object")
-        return best_object
+        if best_object is not None:
+            return best_object
+
+        # The demo catalog has one object per video. The user-drawn region is
+        # authoritative for the model crop, while the mock object supplies the
+        # category used by the existing candidate/evidence flow. Do not guess
+        # when a video contains multiple catalog objects.
+        valid_objects = [
+            candidate
+            for candidate in objects
+            if isinstance(candidate, dict) and isinstance(candidate.get("bbox"), dict)
+        ]
+        if len(valid_objects) == 1:
+            return valid_objects[0]
+        raise FileNotFoundError("Selection does not overlap a detectable object")
 
     @staticmethod
     def _intersection_over_union(first: object, second: Mapping[str, float]) -> float:

@@ -1,10 +1,19 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { CandidateProduct } from '../../types/api'
+import type { DemoInsights } from '../../types/api'
 
-defineProps<{
+const props = defineProps<{
   product?: CandidateProduct | null
   categoryName?: string
+  demoInsights?: DemoInsights | null
 }>()
+
+const averageRating = computed(() => {
+  const reviews = props.demoInsights?.reviews ?? []
+  if (!reviews.length) return null
+  return reviews.reduce((total, review) => total + review.rating, 0) / reviews.length
+})
 </script>
 
 <template>
@@ -24,6 +33,12 @@ defineProps<{
           {{ product?.product_name || '轻量化电竞鼠标 G Pro' }}
         </h3>
         <p class="product-features">轻量化 · 无线连接 · 电竞使用</p>
+        <div v-if="averageRating !== null" class="hero-review-summary">
+          <span class="hero-review-label">用户口碑</span>
+          <strong>★ {{ averageRating.toFixed(1) }}</strong>
+          <span>· {{ demoInsights?.reviews.length }} 条</span>
+          <span class="hero-demo-mark">演示</span>
+        </div>
       </div>
     </div>
   </div>
@@ -97,6 +112,33 @@ defineProps<{
   line-height: 1.5;
   white-space: normal;
   overflow-wrap: break-word;
+}
+
+.hero-review-summary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 7px;
+  color: rgba(255, 255, 255, 0.44);
+  font-size: 10px;
+}
+
+.hero-review-summary strong {
+  color: #ffd37a;
+  font-weight: 600;
+}
+
+.hero-review-label {
+  color: #8de8df;
+}
+
+.hero-demo-mark {
+  padding: 2px 5px;
+  color: #ffc66d;
+  border: 1px solid rgba(255, 198, 109, 0.25);
+  border-radius: 999px;
+  font-size: 9px;
 }
 
 .tag-badge-row {

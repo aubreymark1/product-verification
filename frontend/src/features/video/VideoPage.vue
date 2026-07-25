@@ -26,6 +26,7 @@ import EvidenceCard from '../../components/evidence/EvidenceCard.vue'
 import EvidenceDetailModal from '../../components/evidence/EvidenceDetailModal.vue'
 import MultiChannelPurchase from '../verification/MultiChannelPurchase.vue'
 import ReRecommendLoop from '../verification/ReRecommendLoop.vue'
+import { presentationScore as getPresentationScore } from '../verification/presentationScore'
 
 import { useSessionStore } from '../../app/store/session'
 import { api } from '../../services/api'
@@ -35,9 +36,15 @@ const router = useRouter()
 const session = useSessionStore()
 
 const videoSrc = ref('/assets/mock/videos/main_demo.mp4')
+const videoTitle = ref('')
 const videoRef = ref<HTMLVideoElement | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
 const isPaused = ref(false)
+const isSelecting = ref(false)
+const isIdentifying = ref(false)
+const selectionBox = ref<BBox | null>(null)
+const selectionDisplay = ref<{ left: number; top: number; width: number; height: number } | null>(null)
+const selectionStart = ref<{ sourceX: number; sourceY: number; displayX: number; displayY: number } | null>(null)
 
 // Drawer state (1: Target Confirmation, 2: Requirements Input, 3: AI Analysis, 4: Results)
 const showDrawer = ref(false)
@@ -66,6 +73,7 @@ let aiTimer: number | null = null
 // Verification Results & Evidence Modal
 const verificationResult = ref<VerificationResult | null>(null)
 const selectedEvidence = ref<Evidence | null>(null)
+const presentationScore = computed(() => getPresentationScore(verificationResult.value))
 
 onMounted(() => {
   void loadVideo(session.videoId)
@@ -96,19 +104,29 @@ async function loadVideo(videoId: string) {
   videoError.value = ''
   try {
     const video = await api.getVideo(videoId)
-    videoSrc.value = video.video_url ?? '/assets/mock/videos/main_demo.mp4'
-    const object = video.objects[0]
-    if (object) await identifyObject(videoId, object.bbox)
+    const demoVideoSrc = import.meta.env.VITE_DEMO_VIDEO_SRC
+    const demoVideoTitle = import.meta.env.VITE_DEMO_VIDEO_TITLE
+    videoSrc.value = videoId === 'demo_video_001' && demoVideoSrc
+      ? demoVideoSrc
+      : (video.video_url ?? '/assets/mock/videos/main_demo.mp4')
+    videoTitle.value = videoId === 'demo_video_001' && demoVideoTitle
+      ? demoVideoTitle
+      : video.title
+    selectionBox.value = null
+    selectionDisplay.value = null
+    identifyResult.value = null
+    identifyError.value = ''
   } catch (error) {
     videoError.value = '视频信息加载失败，请重试或重新上传视频'
     console.warn('视频元数据加载失败，保留当前演示画面', error)
   }
 }
 
-async function identifyObject(videoId: string, selection: BBox) {
+async function identifyObject(videoId: string, selection: BBox, contextText = '', timestamp = 0) {
   identifyError.value = ''
+  isIdentifying.value = true
   try {
-    const result = await api.identify(videoId, 0, selection)
+    const result = await api.identify(videoId, timestamp, selection, contextText)
     identifyResult.value = result
     session.setIdentification(result)
     if (result.candidates[0]) selectCandidate(result.candidates[0])
@@ -117,7 +135,94 @@ async function identifyObject(videoId: string, selection: BBox) {
     identifyError.value = '未识别到可确认商品，请重新圈选或上传视频'
     session.setIdentification({ category_id: '', category_name: '', visual_attributes: {}, candidates: [] })
     console.warn('视频对象识别失败，等待用户重新选择或上传视频', error)
+  } finally {
+    isIdentifying.value = false
   }
+}
+
+function clamp(value: number) {
+  return Math.min(1, Math.max(0, value))
+}
+
+function getVideoContentRect(element: HTMLVideoElement) {
+  const box = element.getBoundingClientRect()
+  const videoWidth = element.videoWidth || box.width
+  const videoHeight = element.videoHeight || box.height
+  const videoRatio = videoWidth / videoHeight
+  const boxRatio = box.width / box.height
+
+  if (videoRatio > boxRatio) {
+    const renderedWidth = box.height * videoRatio
+    return { left: box.left + (box.width - renderedWidth) / 2, top: box.top, width: renderedWidth, height: box.height }
+  }
+
+  const renderedHeight = box.width / videoRatio
+  return { left: box.left, top: box.top + (box.height - renderedHeight) / 2, width: box.width, height: renderedHeight }
+}
+
+function getSelectionPoint(event: PointerEvent) {
+  const element = videoRef.value
+  if (!element) return null
+  const box = element.getBoundingClientRect()
+  const content = getVideoContentRect(element)
+  return {
+    sourceX: clamp((event.clientX - content.left) / content.width),
+    sourceY: clamp((event.clientY - content.top) / content.height),
+    displayX: clamp((event.clientX - box.left) / box.width),
+    displayY: clamp((event.clientY - box.top) / box.height),
+  }
+}
+
+function updateSelection(event: PointerEvent) {
+  const start = selectionStart.value
+  const point = getSelectionPoint(event)
+  if (!start || !point) return
+
+  selectionBox.value = {
+    x: Math.min(start.sourceX, point.sourceX),
+    y: Math.min(start.sourceY, point.sourceY),
+    width: Math.abs(point.sourceX - start.sourceX),
+    height: Math.abs(point.sourceY - start.sourceY),
+  }
+  selectionDisplay.value = {
+    left: Math.min(start.displayX, point.displayX) * 100,
+    top: Math.min(start.displayY, point.displayY) * 100,
+    width: Math.abs(point.displayX - start.displayX) * 100,
+    height: Math.abs(point.displayY - start.displayY) * 100,
+  }
+}
+
+function startSelection(event: PointerEvent) {
+  event.stopPropagation()
+  if (!isPaused.value || isIdentifying.value) return
+  const point = getSelectionPoint(event)
+  if (!point) return
+  isSelecting.value = true
+  selectionStart.value = point
+  selectionBox.value = { x: point.sourceX, y: point.sourceY, width: 0, height: 0 }
+  selectionDisplay.value = { left: point.displayX * 100, top: point.displayY * 100, width: 0, height: 0 }
+  ;(event.currentTarget as HTMLElement).setPointerCapture(event.pointerId)
+}
+
+function moveSelection(event: PointerEvent) {
+  event.stopPropagation()
+  if (isSelecting.value) updateSelection(event)
+}
+
+async function finishSelection(event: PointerEvent) {
+  event.stopPropagation()
+  if (!isSelecting.value) return
+  updateSelection(event)
+  isSelecting.value = false
+  selectionStart.value = null
+  const selected = selectionBox.value
+  if (!selected || selected.width < 0.03 || selected.height < 0.03) {
+    selectionBox.value = null
+    selectionDisplay.value = null
+    identifyError.value = '请拖动圈选完整商品后再识别'
+    return
+  }
+  await identifyObject(session.videoId, selected, videoTitle.value, videoRef.value?.currentTime ?? 0)
 }
 
 function selectCandidate(candidate: CandidateProduct) {
@@ -142,7 +247,9 @@ async function handleUpload(event: Event) {
     session.setProduct({ product_id: '', product_name: '', confidence: 0, image_url: null })
     videoSrc.value = video.video_url ?? URL.createObjectURL(file)
     identifyResult.value = null
-    if (video.objects[0]) await identifyObject(video.video_id, video.objects[0].bbox)
+    selectionBox.value = null
+    selectionDisplay.value = null
+    videoTitle.value = video.title
   } catch (error) {
     videoError.value = '视频上传失败，请选择有效的视频文件后重试'
     console.error('视频上传失败', error)
@@ -170,6 +277,19 @@ function openNewRequirementStep() {
   rawQueryText.value = ''
   isAddingNewRequirement.value = true
   drawerStep.value = 2
+}
+
+function closeDrawer() {
+  if (drawerStep.value === 2) {
+    if (isAddingNewRequirement.value) {
+      drawerStep.value = 4
+      isAddingNewRequirement.value = false
+    } else {
+      drawerStep.value = 1
+    }
+    return
+  }
+  showDrawer.value = false
 }
 
 let voiceTimer: number | null = null
@@ -212,22 +332,38 @@ async function startAiAnalysis() {
   }, 300)
 
   try {
-    const res = await api.runVerification({
-      video_id: session.videoId,
-      product_id: selectedCandidateId.value,
-      category_id: session.categoryId,
-      conditions: {
-        budget: selectedBudget.value,
-        connection: selectedConnection.value,
-      },
-      raw_query: rawQueryText.value,
-    })
+    const conditions = {
+      budget: selectedBudget.value,
+      connection: selectedConnection.value,
+    }
+    const previous = verificationResult.value ?? session.verificationResult
+    const res = isAddingNewRequirement.value && previous
+      ? await api.rerunRecommendation({
+        video_id: session.videoId,
+        product_id: previous.product.product_id,
+        category_id: session.categoryId,
+        previous_result_id: previous.result_id,
+        dissatisfaction_reasons: [],
+        dissatisfaction_note: rawQueryText.value,
+        inherit_previous_needs: true,
+        conditions_patch: conditions,
+        raw_query: rawQueryText.value,
+      })
+      : await api.runVerification({
+        video_id: session.videoId,
+        product_id: selectedCandidateId.value,
+        category_id: session.categoryId,
+        conditions,
+        raw_query: rawQueryText.value,
+      })
 
     setTimeout(() => {
       if (aiTimer) clearInterval(aiTimer)
       verificationResult.value = res
       session.setVerificationResult(res)
       if (isAddingNewRequirement.value) {
+        session.setProduct(res.product)
+        session.setSelectedPriceProduct(res.product)
         session.inheritedConditions = {
           ...session.inheritedConditions,
           rawQuery: rawQueryText.value,
@@ -308,16 +444,35 @@ async function openEvidenceDetail(id: string) {
           @pause="handlePause"
         ></video>
 
-        <!-- Bounding Rings around Target -->
-        <div v-if="isPaused" class="target-bounding-overlay" @click.stop="openVerificationDrawer">
-          <div class="clean-target-ring">
-            <span class="target-dot"></span>
-            <span class="target-name">{{ identifyResult?.category_name || '待识别商品' }}</span>
+        <!-- User selection layer: recognition starts only after a real drag selection. -->
+        <div
+          v-if="isPaused"
+          class="selection-layer"
+          @pointerdown="startSelection"
+          @pointermove="moveSelection"
+          @pointerup="finishSelection"
+          @pointercancel="finishSelection"
+          @click.stop
+        >
+          <div v-if="!selectionBox && !isIdentifying" class="selection-hint">拖动圈选商品</div>
+          <div v-if="isIdentifying" class="selection-hint">AI 识别中…</div>
+          <div v-if="identifyError && !isIdentifying" class="selection-hint selection-error">{{ identifyError }}</div>
+          <div
+            v-if="selectionDisplay"
+            class="selection-rect"
+            :style="{
+              left: `${selectionDisplay.left}%`,
+              top: `${selectionDisplay.top}%`,
+              width: `${selectionDisplay.width}%`,
+              height: `${selectionDisplay.height}%`,
+            }"
+          >
+            <span v-if="identifyResult" class="selection-label">{{ identifyResult.category_name }}</span>
           </div>
         </div>
 
         <!-- Floating Pill Button -->
-        <div v-if="isPaused" class="floating-pill-position" @click.stop="openVerificationDrawer">
+        <div v-if="isPaused && identifyResult && !isIdentifying" class="floating-pill-position" @click.stop="openVerificationDrawer">
           <VerifyPillButton />
         </div>
 
@@ -353,6 +508,7 @@ async function openEvidenceDetail(id: string) {
         <div class="video-bottom-content" @click.stop>
           <div class="creator-copy">
             <strong>@创作者</strong>
+            <p class="video-title">{{ videoTitle }}</p>
             <p>分享真实使用体验与产品细节</p>
             <span><Music2 :size="13" :stroke-width="1.8" /> 原声 · 产品体验</span>
           </div>
@@ -376,7 +532,7 @@ async function openEvidenceDetail(id: string) {
       <BottomDrawer
         :show="showDrawer"
         :title="drawerStep === 1 ? '确认目标商品' : drawerStep === 2 ? (isAddingNewRequirement ? '增加新需求...' : '补充使用需求') : drawerStep === 3 ? 'AI 分析中' : '验真结果'"
-        @close="showDrawer = false"
+        @close="closeDrawer"
       >
         <!-- STEP 1: 确认目标商品 -->
         <div v-if="drawerStep === 1" class="drawer-step">
@@ -493,8 +649,8 @@ async function openEvidenceDetail(id: string) {
         <div v-else-if="drawerStep === 4" class="drawer-step result">
           <div class="top-hero-block">
             <div class="top-hero-row">
-              <RecommendationGauge :score="verificationResult?.recommendation_score || 0.82" />
-              <ProductHeroCard :product="verificationResult?.product || session.selectedProduct" :category-name="identifyResult?.category_name || ''" />
+              <RecommendationGauge :score="presentationScore" />
+              <ProductHeroCard :product="verificationResult?.product || session.selectedProduct" :category-name="identifyResult?.category_name || ''" :demo-insights="verificationResult?.demo_insights" />
             </div>
 
             <div class="summary-single-line">
@@ -511,16 +667,38 @@ async function openEvidenceDetail(id: string) {
                 <path d="M5 12.5L9.4 17L19 7" />
               </svg>
             </span>
-            <span class="banner-text">当前证据支持<strong>该鼠标能较好满足你的需求</strong>，整体推荐购买。</span>
+            <span class="banner-text">{{ verificationResult?.support?.length ? '当前可信证据支持该商品与需求存在匹配。' : '以下为演示匹配参考；真实商品结论仍需可信来源确认。' }}</span>
           </div>
 
           <div class="evidence-clean-list">
-            <EvidenceCard type="risk" title="风险证据" :items="verificationResult?.risks || []" @select-evidence="openEvidenceDetail" />
-            <EvidenceCard type="support" title="支持证据" :items="verificationResult?.support || []" @select-evidence="openEvidenceDetail" />
-            <EvidenceCard type="uncertain" title="待确认项" :items="verificationResult?.uncertain || []" @select-evidence="openEvidenceDetail" />
+            <EvidenceCard
+              type="risk"
+              title="风险证据"
+              :items="verificationResult?.risks || []"
+              :demo-items="verificationResult?.demo_insights?.risk_items"
+              :expanded="Boolean(verificationResult?.demo_insights?.risk_items?.length)"
+              @select-evidence="openEvidenceDetail"
+            />
+            <EvidenceCard
+              type="support"
+              title="支持证据"
+              :items="verificationResult?.support || []"
+              :demo-reviews="verificationResult?.demo_insights?.reviews"
+              :demo-items="verificationResult?.demo_insights?.support_items"
+              :expanded="Boolean(verificationResult?.demo_insights?.support_items?.length)"
+              @select-evidence="openEvidenceDetail"
+            />
+            <EvidenceCard
+              type="uncertain"
+              title="待确认项"
+              :items="verificationResult?.uncertain || []"
+              :demo-items="verificationResult?.demo_insights?.pending_items"
+              :expanded="Boolean(verificationResult?.demo_insights?.pending_items?.length)"
+              @select-evidence="openEvidenceDetail"
+            />
           </div>
 
-          <MultiChannelPurchase />
+          <MultiChannelPurchase :demo-insights="verificationResult?.demo_insights" />
           <ReRecommendLoop @click="openNewRequirementStep" />
         </div>
       </BottomDrawer>
@@ -618,6 +796,60 @@ async function openEvidenceDetail(id: string) {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.selection-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 16;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.selection-hint {
+  position: absolute;
+  top: 48%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 8px 14px;
+  border: 1px solid rgba(56, 189, 248, 0.55);
+  border-radius: 16px;
+  background: rgba(15, 23, 42, 0.82);
+  color: #bae6fd;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  backdrop-filter: blur(8px);
+}
+
+.selection-error {
+  color: #fecaca;
+  border-color: rgba(248, 113, 113, 0.6);
+}
+
+.selection-rect {
+  position: absolute;
+  min-width: 3%;
+  min-height: 3%;
+  border: 2px solid #38bdf8;
+  border-radius: 8px;
+  background: rgba(56, 189, 248, 0.12);
+  box-shadow: 0 0 0 1px rgba(2, 132, 199, 0.35), 0 0 18px rgba(56, 189, 248, 0.28);
+  pointer-events: none;
+}
+
+.selection-label {
+  position: absolute;
+  top: -28px;
+  left: -2px;
+  padding: 4px 8px;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.9);
+  color: #bae6fd;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .target-bounding-overlay {
@@ -1311,6 +1543,14 @@ async function openEvidenceDetail(id: string) {
   margin: 0 0 8px;
   font-size: 12px;
   line-height: 1.45;
+}
+
+.creator-copy .video-title {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-weight: 600;
 }
 
 .creator-copy span {

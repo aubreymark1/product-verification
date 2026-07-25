@@ -1,7 +1,7 @@
 import base64
 import json
 import mimetypes
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Protocol
 
@@ -112,8 +112,9 @@ class OpenAIVisionProvider:
         frames: Sequence[FrameReference],
         context_text: str = "",
         prompt: str | None = None,
+        selection: Mapping[str, float] | None = None,
     ) -> VisionAnalysis:
-        image_url, frame_context = FramePackBuilder().build(frames)
+        image_url, frame_context = FramePackBuilder().build(frames, selection=selection)
         context = "\n".join(part for part in [frame_context, context_text.strip()] if part)
         combined_prompt = "\n".join(
             part

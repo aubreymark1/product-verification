@@ -1,13 +1,18 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { ChevronRight, ShoppingCart, X } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import { useSessionStore } from '../../app/store/session'
 import { api } from '../../services/api'
+import type { DemoInsights } from '../../types/api'
 
 const router = useRouter()
 const session = useSessionStore()
 const showChannelsModal = ref(false)
+
+const props = defineProps<{
+  demoInsights?: DemoInsights | null
+}>()
 
 const emit = defineEmits<{
   navigate: []
@@ -20,6 +25,18 @@ interface DisplayChannel {
 }
 
 const channels = ref<DisplayChannel[]>([])
+
+const demoChannels = computed<DisplayChannel[]>(() => (props.demoInsights?.price_offers ?? []).map((offer) => ({
+  platform: offer.channel_name,
+  price: `¥${offer.price.toFixed(2)}`,
+  tag: `${offer.offer} · 演示`,
+})))
+
+const displayChannels = computed(() => demoChannels.value.length ? demoChannels.value : channels.value)
+const lowestOffer = computed(() => {
+  const offers = props.demoInsights?.price_offers ?? []
+  return offers.length ? offers.reduce((lowest, offer) => offer.price < lowest.price ? offer : lowest) : null
+})
 
 async function loadChannels() {
   const productId = session.selectedProduct?.product_id
@@ -64,10 +81,10 @@ function closeModal() {
         </div>
         <div class="text-group">
           <div class="title-row">
-            <span class="main-title">查看全网低价</span>
+            <span class="main-title">{{ lowestOffer ? `当前最低价 ${lowestOffer.price.toFixed(2)} 起` : '查看全网低价' }}</span>
             <ChevronRight class="arrow-sym" :size="15" :stroke-width="1.8" />
           </div>
-          <span class="sub-title">低价快比，放心买</span>
+          <span class="sub-title">{{ lowestOffer ? `${lowestOffer.channel_name} · 模拟渠道价格` : '低价快比，放心买' }}</span>
         </div>
       </div>
 
@@ -75,7 +92,7 @@ function closeModal() {
         <div class="platform-badges-row">
           <span class="app-icon app-icon--tmall" aria-label="天猫"></span>
           <span class="app-icon app-icon--jd" aria-label="京东"></span>
-          <span class="summary-text">{{ channels.length }}源比价</span>
+          <span class="summary-text">{{ displayChannels.length }}源比价</span>
           <span class="app-icon app-icon--douyin" aria-label="抖音"></span>
           <span class="app-icon app-icon--pdd" aria-label="拼多多"></span>
         </div>
@@ -87,8 +104,8 @@ function closeModal() {
       <div class="channel-modal">
         <div class="modal-header">
           <div>
-            <h3>全网比价汇总（{{ channels.length }}个渠道）</h3>
-            <span class="demo-tag">已配置渠道数据</span>
+            <h3>全网比价汇总（{{ displayChannels.length }}个渠道）</h3>
+            <span class="demo-tag">{{ demoChannels.length ? '演示渠道数据' : '已配置渠道数据' }}</span>
           </div>
           <button class="close-btn" aria-label="关闭" @click="closeModal">
             <X :size="18" :stroke-width="1.8" />
@@ -96,7 +113,7 @@ function closeModal() {
         </div>
 
         <div class="channel-list">
-          <div v-for="c in channels" :key="c.platform" class="channel-item">
+          <div v-for="c in displayChannels" :key="c.platform" class="channel-item">
             <div class="item-meta">
               <span class="platform-name">{{ c.platform }}</span>
               <span class="tag-chip">{{ c.tag }}</span>

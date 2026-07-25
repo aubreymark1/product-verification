@@ -6,6 +6,7 @@ from app.database.mock_store import MockDataNotFound, MockStore, mock_store
 from app.schemas.contracts import (
     AnalysisMode,
     CandidateProduct,
+    DemoInsights,
     Evidence,
     PurchaseChannel,
     RerunRecommendationRequest,
@@ -15,6 +16,7 @@ from app.schemas.contracts import (
 from app.services.recommendation.generator import RecommendationGenerator
 from app.services.verification.analysis import AnalysisArtifact, EvidenceConstrainedAnalyzer
 from app.services.verification.condition_parser import ConditionParser, ParsedConditions
+from app.services.verification.demo_insights import DemoScenarioProvider
 from app.services.verification.evidence_ranker import EvidenceRanker
 from app.services.verification.fallback import FallbackProvider
 from app.services.verification.model_validator import ModelOutputValidator
@@ -38,6 +40,7 @@ class VerificationService:
         analyzer: EvidenceConstrainedAnalyzer | None = None,
         model_provider: OpenAIVerificationProvider | None = None,
         model_validator: ModelOutputValidator | None = None,
+        demo_scenario_provider: DemoScenarioProvider | None = None,
     ) -> None:
         self.store = store
         self.condition_parser = condition_parser or ConditionParser()
@@ -47,6 +50,7 @@ class VerificationService:
         self.fallback_provider = fallback_provider or FallbackProvider()
         self.analyzer = analyzer or EvidenceConstrainedAnalyzer(store)
         self.model_validator = model_validator or ModelOutputValidator()
+        self.demo_scenario_provider = demo_scenario_provider or DemoScenarioProvider()
         self._model_requested = settings.openai_verification_enabled or model_provider is not None
         self._model_setup_failed = False
         if model_provider is not None:
@@ -75,6 +79,7 @@ class VerificationService:
         change_summary: str = "",
     ) -> VerificationResult:
         product = self._product(request.product_id, request.category_id)
+        product_data = self.store.find_by_id("products.json", "product_id", request.product_id)
         parsed = self._parse(request.category_id, request.conditions, request.raw_query)
         artifact, evidence_by_id, analysis_mode = self._artifact(
             product,
@@ -94,6 +99,18 @@ class VerificationService:
             result_id=result_id or self._initial_result_id(product.product_id),
             analysis_mode=analysis_mode,
             change_summary=change_summary,
+            demo_insights=(
+                self.demo_scenario_provider.build(
+                    product,
+                    request.category_id,
+                    request.conditions,
+                    request.raw_query,
+                    product_data,
+                    round_number,
+                )
+                if settings.demo_insights_enabled
+                else None
+            ),
         )
         self._results[result.result_id] = result
         self._histories[result.result_id] = set(previously_seen_product_ids) | {product.product_id}
@@ -217,6 +234,7 @@ class VerificationService:
         result_id: str,
         analysis_mode: AnalysisMode,
         change_summary: str,
+        demo_insights: DemoInsights | None = None,
     ) -> VerificationResult:
         support = self.source_validator.filter_conclusions(artifact.support, evidence_by_id)
         risks = self.source_validator.filter_conclusions(artifact.risks, evidence_by_id)
@@ -246,6 +264,7 @@ class VerificationService:
             uncertain=uncertain,
             dissatisfaction_reasons=dissatisfaction_reasons,
             purchase_channels=self._purchase_channels(product.product_id),
+            demo_insights=demo_insights,
         )
 
     def _product(self, product_id: str, category_id: str) -> CandidateProduct:

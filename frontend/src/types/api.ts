@@ -135,6 +135,7 @@ export interface VerificationResult {
   uncertain: Conclusion[]
   dissatisfaction_reasons: string[]
   purchase_channels: PurchaseChannel[]
+  demo_insights?: DemoInsights | null
 }
 
 export interface RecommendationDimension {
@@ -155,6 +156,46 @@ export interface PurchaseChannel {
   url: string | null
   availability: 'available' | 'pending' | 'placeholder'
   note: string
+}
+
+export interface DemoReview {
+  review_id: string
+  focus: string
+  sentiment: 'positive' | 'mixed' | 'negative'
+  rating: number
+  content: string
+  source_type: 'demo_mock'
+}
+
+export interface DemoPriceOffer {
+  offer_id: string
+  channel_name: string
+  price: number
+  original_price: number
+  offer: string
+  note: string
+  source_type: 'demo_mock'
+}
+
+export interface DemoInsightItem {
+  insight_id: string
+  label: string
+  content: string
+  source_type: 'demo_mock'
+}
+
+export interface DemoInsights {
+  is_mock: true
+  scenario_id: string
+  generated_by: 'demo_scenario_provider'
+  generated_at: string
+  personalization_note: string
+  presentation_score: number
+  reviews: DemoReview[]
+  support_items: DemoInsightItem[]
+  risk_items: DemoInsightItem[]
+  pending_items: DemoInsightItem[]
+  price_offers: DemoPriceOffer[]
 }
 
 export interface VerificationRequest {

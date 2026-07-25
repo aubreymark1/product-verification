@@ -4,7 +4,7 @@ import type { ApiResponse, BBox, CategoryProfile, Evidence, IdentifyResult, Purc
 
 const client = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000/api',
-  timeout: 8000,
+  timeout: Number(import.meta.env.VITE_API_TIMEOUT_MS ?? 30000),
 })
 
 async function unwrap<T>(request: Promise<{ data: ApiResponse<T> }>): Promise<T> {
@@ -22,7 +22,12 @@ export const api = {
     return unwrap<Video>(client.post('/videos/upload', body))
   },
   getVideo: (videoId: string) => unwrap<Video>(client.get(`/videos/${videoId}`)),
-  identify: (videoId: string, timestamp: number, selection: BBox) => unwrap<IdentifyResult>(client.post('/vision/identify', { video_id: videoId, timestamp, selection })),
+  identify: (videoId: string, timestamp: number, selection: BBox, contextText = '') => unwrap<IdentifyResult>(client.post('/vision/identify', {
+    video_id: videoId,
+    timestamp,
+    selection,
+    context_text: contextText,
+  })),
   getProfile: (categoryId: string) => unwrap<CategoryProfile>(client.get(`/categories/${categoryId}/profile`)),
   runVerification: (payload: VerificationRequest) => unwrap<VerificationResult>(client.post('/verification/run', payload)),
   rerunRecommendation: (payload: RerunRecommendationRequest) => unwrap<VerificationResult>(client.post('/recommendations/rerun', payload)),

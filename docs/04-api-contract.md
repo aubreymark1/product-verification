@@ -71,6 +71,7 @@
 - `change_summary`：再推荐时说明继承需求、反馈合并、已看商品过滤和候选变化；首轮为空字符串；
 - `summary`、`support[]`、`risks[]`、`uncertain[]`、`dissatisfaction_reasons[]`；
 - `purchase_channels[]`：多渠道入口结构，包含 `channel_id`、`product_id`、`channel_name`、`channel_type`、`url`、`availability`、`note`。
+- `demo_insights`：可选的演示编排数据，包含模拟评论、评价、价格方案，以及 `support_items`、`risk_items`、`pending_items` 三类演示参考；`presentation_score` 仅用于演示界面的匹配度展示，不会覆盖 `recommendation_score`。其中 `is_mock=true`、`source_type=demo_mock`，仅用于展示，不进入商品事实、结论或证据链。
 
 每条 `support`、`risks`、`uncertain` 结论包含 `id`、`claim`、`source_ids`、`confidence`。`source_ids` 必须至少有一个来源，空来源结论不得输出；这里的 `confidence` 表示证据强度，不是推荐度。
 

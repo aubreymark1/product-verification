@@ -9,7 +9,7 @@ import {
   CircleHelp,
 } from 'lucide-vue-next'
 
-import type { Conclusion } from '../../types/api'
+import type { Conclusion, DemoInsightItem, DemoReview } from '../../types/api'
 
 type EvidenceType = 'support' | 'risk' | 'pending'
 
@@ -18,8 +18,12 @@ const props = withDefaults(defineProps<{
   title: string
   items: Conclusion[]
   expanded?: boolean
+  demoReviews?: DemoReview[]
+  demoItems?: DemoInsightItem[]
 }>(), {
   expanded: false,
+  demoReviews: () => [],
+  demoItems: () => [],
 })
 
 const emit = defineEmits<{
@@ -43,7 +47,7 @@ function toggleExpand() {
 </script>
 
 <template>
-    <section class="evidence-card" :class="[sectionClass, { 'is-empty': items.length === 0 }]">
+    <section class="evidence-card" :class="[sectionClass, { 'is-empty': items.length === 0 && demoItems.length === 0, 'has-demo-reviews': demoReviews.length > 0 }]">
     <button
       class="evidence-card__header"
       type="button"
@@ -58,7 +62,7 @@ function toggleExpand() {
       </span>
 
       <span class="evidence-card__meta">
-        <span>{{ items.length }} 条</span>
+        <span>{{ items.length + demoItems.length }} 条<span v-if="demoItems.length" class="demo-count">（含 {{ demoItems.length }} 条演示）</span></span>
         <ChevronUp v-if="isExpanded" :size="17" :stroke-width="1.8" />
         <ChevronDown v-else :size="17" :stroke-width="1.8" />
       </span>
@@ -75,8 +79,31 @@ function toggleExpand() {
         >
           <span class="evidence-item__text">{{ item.claim }}</span>
           <ChevronRight class="evidence-item__icon" :size="15" :stroke-width="1.8" />
-        </button>
-      </div>
+          </button>
+          <div v-if="demoItems.length" class="demo-insight-evidence">
+            <div class="demo-review-evidence__heading">
+              <span>平台信息参考</span>
+              <span>演示数据</span>
+            </div>
+            <article v-for="item in demoItems" :key="item.insight_id" class="demo-insight-evidence__item">
+              <strong>{{ item.label }}</strong>
+              <p>{{ item.content }}</p>
+            </article>
+          </div>
+          <div v-if="demoReviews.length" class="demo-review-evidence">
+            <div class="demo-review-evidence__heading">
+              <span>平台口碑摘要</span>
+              <span>演示数据</span>
+            </div>
+            <article v-for="review in demoReviews" :key="review.review_id" class="demo-review-evidence__item">
+              <div class="demo-review-evidence__meta">
+                <span>{{ review.focus }}</span>
+                <strong>★ {{ review.rating.toFixed(1) }}</strong>
+              </div>
+              <p>{{ review.content }}</p>
+            </article>
+          </div>
+        </div>
     </div>
   </section>
 </template>
@@ -256,6 +283,88 @@ function toggleExpand() {
 .evidence-item__icon {
   flex: 0 0 auto;
   color: rgba(255, 255, 255, 0.38);
+}
+
+.evidence-card__meta .demo-count {
+  margin-left: 3px;
+  color: #ffc66d;
+  font-size: 10px;
+}
+
+.demo-review-evidence {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 3px;
+  padding-top: 9px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.demo-insight-evidence {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.demo-insight-evidence__item {
+  padding: 8px 9px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+}
+
+.demo-insight-evidence__item strong {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.demo-insight-evidence__item p {
+  margin: 5px 0 0;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.demo-review-evidence__heading,
+.demo-review-evidence__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.demo-review-evidence__heading {
+  color: rgba(255, 255, 255, 0.48);
+  font-size: 10px;
+}
+
+.demo-review-evidence__heading span:last-child {
+  color: #ffc66d;
+}
+
+.demo-review-evidence__item {
+  padding: 8px 9px;
+  background: rgba(35, 211, 196, 0.045);
+  border: 1px solid rgba(35, 211, 196, 0.1);
+  border-radius: 8px;
+}
+
+.demo-review-evidence__meta {
+  color: #9eece5;
+  font-size: 10px;
+}
+
+.demo-review-evidence__meta strong {
+  color: #ffd37a;
+  font-weight: 500;
+}
+
+.demo-review-evidence__item p {
+  margin: 5px 0 0;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 11px;
+  line-height: 1.55;
 }
 
 @media (prefers-reduced-motion: reduce) {

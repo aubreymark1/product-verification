@@ -49,6 +49,7 @@ class SelectionRequest(BaseModel):
     video_id: str
     timestamp: float = Field(ge=0)
     selection: BBox
+    context_text: str = ""
 
 
 class CandidateProduct(BaseModel):
@@ -162,6 +163,48 @@ class PurchaseChannel(BaseModel):
     note: str = ""
 
 
+class DemoReview(BaseModel):
+    review_id: str
+    focus: str
+    sentiment: Literal["positive", "mixed", "negative"]
+    rating: float = Field(ge=1, le=5)
+    content: str
+    source_type: Literal["demo_mock"] = "demo_mock"
+
+
+class DemoPriceOffer(BaseModel):
+    offer_id: str
+    channel_name: str
+    price: float = Field(gt=0)
+    original_price: float = Field(gt=0)
+    offer: str
+    note: str = ""
+    source_type: Literal["demo_mock"] = "demo_mock"
+
+
+class DemoInsightItem(BaseModel):
+    """Presentation-only item, deliberately separate from trusted evidence."""
+
+    insight_id: str
+    label: str
+    content: str
+    source_type: Literal["demo_mock"] = "demo_mock"
+
+
+class DemoInsights(BaseModel):
+    is_mock: Literal[True] = True
+    scenario_id: str
+    generated_by: Literal["demo_scenario_provider"] = "demo_scenario_provider"
+    generated_at: str
+    personalization_note: str
+    presentation_score: float = Field(ge=0, le=1)
+    reviews: list[DemoReview] = Field(default_factory=list)
+    support_items: list[DemoInsightItem] = Field(default_factory=list)
+    risk_items: list[DemoInsightItem] = Field(default_factory=list)
+    pending_items: list[DemoInsightItem] = Field(default_factory=list)
+    price_offers: list[DemoPriceOffer] = Field(default_factory=list)
+
+
 class VerificationResult(BaseModel):
     result_id: str
     product: CandidateProduct
@@ -184,6 +227,7 @@ class VerificationResult(BaseModel):
     uncertain: list[Conclusion]
     dissatisfaction_reasons: list[str] = Field(default_factory=list)
     purchase_channels: list[PurchaseChannel] = Field(default_factory=list)
+    demo_insights: DemoInsights | None = None
 
 
 class RerunRecommendationRequest(BaseModel):

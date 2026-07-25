@@ -2,12 +2,15 @@
 import { computed } from 'vue'
 
 import EvidenceSection from './EvidenceSection.vue'
-import type { Conclusion } from '../../types/api'
+import type { Conclusion, DemoInsightItem, DemoReview } from '../../types/api'
 
 const props = defineProps<{
   type: 'risk' | 'support' | 'uncertain'
   title: string
   items: Conclusion[]
+  demoReviews?: DemoReview[]
+  demoItems?: DemoInsightItem[]
+  expanded?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -22,6 +25,9 @@ const evidenceType = computed(() => (props.type === 'uncertain' ? 'pending' : pr
     :type="evidenceType"
     :title="title"
     :items="items"
+    :demo-reviews="demoReviews"
+    :demo-items="demoItems"
+    :expanded="expanded"
     @select-evidence="emit('selectEvidence', $event)"
   />
 </template>

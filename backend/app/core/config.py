@@ -28,6 +28,7 @@ class Settings:
     product_image_search_api_key: str | None = os.getenv("PRODUCT_IMAGE_SEARCH_API_KEY") or None
     product_image_search_timeout_seconds: float = float(os.getenv("PRODUCT_IMAGE_SEARCH_TIMEOUT_SECONDS", "5"))
     product_image_cache_ttl_seconds: float = float(os.getenv("PRODUCT_IMAGE_CACHE_TTL_SECONDS", "86400"))
+    demo_insights_enabled: bool = os.getenv("DEMO_INSIGHTS_ENABLED", "true").lower() == "true"
     video_upload_dir: str = os.getenv("VIDEO_UPLOAD_DIR", str(_PROJECT_ROOT / "backend" / "cache" / "uploads"))
 
 

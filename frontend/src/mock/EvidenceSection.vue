@@ -12,10 +12,13 @@ import type {
   EvidenceGroup,
   EvidenceItem,
 } from './evidenceData'
+import type { DemoInsightItem, DemoReview } from '../types/api'
 
 const props = defineProps<{
   group: EvidenceGroup
   defaultExpanded?: boolean
+  demoReviews?: DemoReview[]
+  demoItems?: DemoInsightItem[]
 }>()
 
 const emit = defineEmits<{
@@ -63,7 +66,8 @@ function selectEvidence(item: EvidenceItem) {
       </span>
 
       <span class="evidence-section__count">
-        {{ group.items.length }} 条
+        {{ group.items.length + (demoItems?.length ?? 0) }} 条
+        <small v-if="demoItems?.length">（含 {{ demoItems.length }} 条演示）</small>
       </span>
 
       <ChevronDown
@@ -94,6 +98,31 @@ function selectEvidence(item: EvidenceItem) {
           class="evidence-row__arrow"
         />
       </button>
+
+      <div v-if="demoItems?.length" class="demo-insight-summary">
+        <div class="demo-review-summary__heading">
+          <span>平台信息参考</span>
+          <span>演示数据</span>
+        </div>
+        <article v-for="item in demoItems" :key="item.insight_id" class="demo-insight-summary__item">
+          <strong>{{ item.label }}</strong>
+          <p>{{ item.content }}</p>
+        </article>
+      </div>
+
+      <div v-if="demoReviews?.length" class="demo-review-summary">
+        <div class="demo-review-summary__heading">
+          <span>平台口碑摘要</span>
+          <span>演示数据</span>
+        </div>
+        <article v-for="review in demoReviews" :key="review.review_id" class="demo-review-summary__item">
+          <div>
+            <span>{{ review.focus }}</span>
+            <strong>★ {{ review.rating.toFixed(1) }}</strong>
+          </div>
+          <p>{{ review.content }}</p>
+        </article>
+      </div>
     </div>
   </section>
 </template>
@@ -173,6 +202,11 @@ function selectEvidence(item: EvidenceItem) {
   color: rgba(255, 255, 255, 0.48);
 }
 
+.evidence-section__count small {
+  color: #ffc66d;
+  font-size: 9px;
+}
+
 .evidence-section__expand {
   color: rgba(255, 255, 255, 0.48);
   transition: transform 180ms ease;
@@ -216,6 +250,83 @@ function selectEvidence(item: EvidenceItem) {
   line-height: 1.4;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.demo-review-summary {
+  display: grid;
+  gap: 6px;
+  margin-top: 3px;
+  padding: 9px 9px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.demo-review-summary__heading,
+.demo-review-summary__item > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.demo-review-summary__heading {
+  color: rgba(255, 255, 255, 0.48);
+  font-size: 10px;
+}
+
+.demo-review-summary__heading span:last-child {
+  color: #b982ff;
+}
+
+.demo-review-summary__item {
+  padding: 8px 9px;
+  color: rgba(255, 255, 255, 0.68);
+  background: rgba(35, 211, 196, 0.045);
+  border: 1px solid rgba(35, 211, 196, 0.1);
+  border-radius: 8px;
+  font-size: 10px;
+}
+
+.demo-review-summary__item > div span {
+  color: #9eece5;
+}
+
+.demo-review-summary__item strong {
+  color: #ffd37a;
+  font-weight: 500;
+}
+
+.demo-insight-summary {
+  display: grid;
+  gap: 6px;
+  margin-top: 3px;
+  padding: 9px 9px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.demo-insight-summary__item {
+  padding: 8px 9px;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.demo-insight-summary__item strong {
+  color: rgba(255, 255, 255, 0.86);
+  font-weight: 500;
+}
+
+.demo-insight-summary__item p,
+.demo-review-summary__item p {
+  margin: 5px 0 0;
+}
+
+.demo-review-summary__item p {
+  margin: 5px 0 0;
+  font-size: 11px;
+  line-height: 1.55;
 }
 
 .evidence-row__arrow {

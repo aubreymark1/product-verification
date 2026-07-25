@@ -19,6 +19,7 @@ import ProductHeroCard from './ProductHeroCard.vue'
 import MultiChannelPurchase from './MultiChannelPurchase.vue'
 import ReRecommendLoop from './ReRecommendLoop.vue'
 import VerificationSummary from './VerificationSummary.vue'
+import { presentationScore as getPresentationScore } from './presentationScore'
 
 import { useSessionStore } from '../../app/store/session'
 import { api } from '../../services/api'
@@ -67,6 +68,16 @@ const evidenceGroups = computed<EvidenceGroup[]>(() => {
   ]
 })
 
+const presentationScore = computed(() => getPresentationScore(session.verificationResult))
+
+function demoItemsFor(type: EvidenceGroup['type']) {
+  const insights = session.verificationResult?.demo_insights
+  if (!insights) return undefined
+  if (type === 'risk') return insights.risk_items
+  if (type === 'support') return insights.support_items
+  return insights.pending_items
+}
+
 const selectedEvidence = ref<EvidenceItem | null>(null)
 
 /**
@@ -101,6 +112,31 @@ async function addComparison() {
   }
 
   await router.push('/comparison')
+}
+
+async function rerunRecommendation() {
+  const previous = session.verificationResult
+  if (!previous) return
+  error.value = ''
+  try {
+    const result = await api.rerunRecommendation({
+      video_id: session.videoId,
+      product_id: previous.product.product_id,
+      category_id: session.categoryId,
+      previous_result_id: previous.result_id,
+      dissatisfaction_reasons: [],
+      dissatisfaction_note: '',
+      inherit_previous_needs: true,
+      conditions_patch: {},
+      raw_query: previous.raw_query,
+    })
+    session.setVerificationResult(result)
+    session.setProduct(result.product)
+    session.setSelectedPriceProduct(result.product)
+    router.push('/recommendations')
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : '暂时无法找到新的候选商品'
+  }
 }
 </script>
 
@@ -140,7 +176,7 @@ async function addComparison() {
       <!-- 推荐度与商品信息 -->
       <div class="top-hero-row">
         <RecommendationGauge
-          :score="session.verificationResult.recommendation_score"
+          :score="presentationScore"
           :summary="session.verificationResult.summary"
           class="hero-gauge"
         />
@@ -150,6 +186,7 @@ async function addComparison() {
             session.verificationResult.product ||
             session.selectedProduct
           "
+          :demo-insights="session.verificationResult.demo_insights"
           class="hero-product"
         />
       </div>
@@ -183,6 +220,8 @@ async function addComparison() {
           :key="group.type"
           :group="group"
           :default-expanded="true"
+          :demo-reviews="group.type === 'support' ? session.verificationResult.demo_insights?.reviews : undefined"
+          :demo-items="demoItemsFor(group.type)"
           @select="handleEvidenceSelect"
         />
 
@@ -205,10 +244,10 @@ async function addComparison() {
       </div>
 
       <!-- 全网低价 -->
-      <MultiChannelPurchase />
+      <MultiChannelPurchase :demo-insights="session.verificationResult.demo_insights" />
 
       <!-- 重新推荐 -->
-      <ReRecommendLoop @click="router.push('/recommendations')" />
+      <ReRecommendLoop @click="rerunRecommendation" />
 
       <!-- 免责声明 -->
       <div class="disclaimer-footer">

@@ -43,6 +43,24 @@ interface DisplayChannel {
 
 const channels = ref<DisplayChannel[]>([])
 
+const demoChannels = computed<DisplayChannel[]>(() => (session.verificationResult?.demo_insights?.price_offers ?? []).map((offer, index) => ({
+  id: offer.offer_id,
+  name: offer.channel_name,
+  tag: '演示价格参考',
+  score: '待评估',
+  price: `¥${offer.price.toFixed(2)}`,
+  originalPrice: `¥${offer.original_price.toFixed(2)}`,
+  offer: offer.offer,
+  shipping: [offer.note || '配送与售后以渠道说明为准'],
+  arrival: index === 0 ? '预计 2-3 天' : '预计次日达',
+  warranty: '以渠道说明为准',
+  stars: 4,
+  sales: '演示',
+  accent: index === 0 ? 'purple' : 'blue',
+})))
+
+const displayChannels = computed(() => demoChannels.value.length ? demoChannels.value : channels.value)
+
 async function loadChannels() {
   const productId = session.selectedProduct?.product_id
   if (!productId) {
@@ -74,7 +92,12 @@ async function loadChannels() {
 
 onMounted(() => { void loadChannels() })
 watch(() => session.selectedProduct?.product_id, () => { void loadChannels() })
-const lowestChannel = computed(() => channels.value[0] ?? null)
+const lowestChannel = computed(() => displayChannels.value[0] ?? null)
+const demoReviews = computed(() => session.verificationResult?.demo_insights?.reviews ?? [])
+const demoSavings = computed(() => {
+  const offer = session.verificationResult?.demo_insights?.price_offers?.[0]
+  return offer ? Math.max(offer.original_price - offer.price, 0).toFixed(2) : '40.00'
+})
 const selectedProduct = computed(
   () => session.selectedPriceProduct || session.selectedRecommendation || session.selectedProduct,
 )
@@ -134,7 +157,8 @@ function confirmPurchase() {
 
           <section class="product-price-summary">
             <div class="product-price-image" aria-hidden="true">
-              <ShoppingBag :size="36" :stroke-width="1.7" />
+              <img v-if="selectedProduct?.image_url" :src="selectedProduct.image_url" :alt="productName" />
+              <ShoppingBag v-else :size="36" :stroke-width="1.7" />
             </div>
 
             <div class="product-copy">
@@ -151,6 +175,9 @@ function confirmPurchase() {
                 <span>2.4G 无线连接</span>
               </div>
               <p>已有 12.8 万人对该商品进行了比价</p>
+              <p v-if="demoReviews.length" class="demo-review-line">
+                用户口碑 {{ (demoReviews.reduce((sum, review) => sum + review.rating, 0) / demoReviews.length).toFixed(1) }} / 5 · {{ demoReviews.length }} 条演示评价
+              </p>
             </div>
           </section>
 
@@ -175,7 +202,7 @@ function confirmPurchase() {
 
           <main class="channel-list">
             <article
-              v-for="(channel, index) in channels"
+              v-for="(channel, index) in displayChannels"
               :key="channel.id"
               class="channel-card"
               :class="[`channel-card--${channel.accent}`, { featured: index === 0 }]"
@@ -195,9 +222,9 @@ function confirmPurchase() {
                   </div>
 
                   <div class="price-row">
-                    <strong>￥{{ channel.price }}</strong>
+                    <strong>{{ channel.price }}</strong>
                     <span class="offer-chip">{{ channel.offer }}</span>
-                    <del>￥{{ channel.originalPrice }}</del>
+                    <del>{{ channel.originalPrice }}</del>
                   </div>
 
                   <div class="service-line">
@@ -215,7 +242,7 @@ function confirmPurchase() {
                 <span>
                   <Clock3 :size="15" :stroke-width="1.8" />
                   <small>到手价</small>
-                  <b>￥{{ channel.price }}</b>
+                  <b>{{ channel.price }}</b>
                 </span>
                 <span>
                   <Truck :size="16" :stroke-width="1.8" />
@@ -263,8 +290,8 @@ function confirmPurchase() {
           <footer class="price-footer">
             <div>
               <span>当前最低价</span>
-              <strong>￥{{ lowestChannel?.price || '259.00' }}</strong>
-              <small>已为你节省 ￥40.00</small>
+              <strong>{{ lowestChannel?.price || '￥259.00' }}</strong>
+              <small>{{ demoChannels.length ? `演示价格参考 · 已为你节省 ￥${demoSavings}` : '已为你节省 ￥40.00' }}</small>
             </div>
             <button type="button" @click="openPurchase(lowestChannel)">
               去低价购买
@@ -287,7 +314,7 @@ function confirmPurchase() {
                 <X :size="18" :stroke-width="1.9" />
               </button>
               <h2>即将前往该渠道购买</h2>
-              <p v-if="selectedChannel">当前到手价：￥{{ selectedChannel.price }}</p>
+              <p v-if="selectedChannel">当前到手价：{{ selectedChannel.price }}</p>
               <p v-if="selectedChannel">渠道：{{ selectedChannel.name }}</p>
               <p v-if="purchaseTriggered" class="purchase-success">演示模式：购买渠道跳转已触发</p>
               <div v-else class="purchase-actions">
@@ -522,6 +549,17 @@ function confirmPurchase() {
     rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(105, 231, 220, 0.14);
   border-radius: 12px;
+}
+
+.product-price-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+.demo-review-line {
+  color: #8de8df !important;
 }
 
 .product-copy {

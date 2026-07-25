@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, CircleCheck, Share2, Sparkles, Target } from
 import { useRouter } from 'vue-router'
 
 import { useSessionStore } from '../../app/store/session'
+import { presentationScore } from './presentationScore'
 
 const router = useRouter()
 const session = useSessionStore()
@@ -20,6 +21,8 @@ interface DisplayRecommendation {
   source: string
   price: string
   rank: number
+  reviewSummary: string
+  demoPriceNote: string
 }
 
 const recommendations = computed<DisplayRecommendation[]>(() => {
@@ -28,18 +31,29 @@ const recommendations = computed<DisplayRecommendation[]>(() => {
   if (!product) return []
   const evidence = [...(result?.support ?? []), ...(result?.risks ?? [])]
   const sourceIds = evidence.flatMap((item) => item.source_ids)
+  const demo = result?.demo_insights
+  const lowestOffer = demo?.price_offers.length
+    ? demo.price_offers.reduce((lowest, offer) => offer.price < lowest.price ? offer : lowest)
+    : null
+  const averageRating = demo?.reviews.length
+    ? demo.reviews.reduce((total, review) => total + review.rating, 0) / demo.reviews.length
+    : null
   return [{
     product_id: product.product_id,
     product_name: product.product_name,
     image_url: product.image_url,
     product_tag: session.identifyResult?.category_name || '商品',
-    score: Math.round((result?.recommendation_score ?? product.confidence) * 100),
-    reason: result?.summary || '基于当前识别结果与需求进行评估',
+    score: Math.round(presentationScore(result) * 100),
+    reason: sourceIds.length
+      ? (result?.summary || '基于当前识别结果与需求进行评估')
+      : '演示匹配参考：该候选商品仍需可信来源完成验真。',
     description: result?.change_summary || '暂无额外说明',
     evidence: evidence.map((item) => item.claim),
     source: sourceIds.length ? sourceIds.join(', ') : '暂无可信来源',
-    price: '待确认',
+    price: lowestOffer ? lowestOffer.price.toFixed(2) : '待确认',
     rank: 1,
+    reviewSummary: averageRating === null ? '' : `用户口碑 ${averageRating.toFixed(1)} / 5（${demo?.reviews.length} 条演示评价）`,
+    demoPriceNote: lowestOffer ? `${lowestOffer.channel_name} · 演示价格` : '',
   }]
 })
 
@@ -117,6 +131,10 @@ function selectRecommendation(product: DisplayRecommendation) {
               <span>推荐度</span>
               <strong>{{ product.score }}%</strong>
             </div>
+            <div v-if="product.reviewSummary" class="review-reference">
+              <span>{{ product.reviewSummary }}</span>
+              <em>Mock</em>
+            </div>
             <h3><Target :size="16" :stroke-width="1.8" /> <span>{{ product.reason }}</span></h3>
             <p>{{ product.description }}</p>
           </div>
@@ -125,7 +143,17 @@ function selectRecommendation(product: DisplayRecommendation) {
         <div class="recommendation-details">
           <div class="support-label"><CircleCheck :size="14" :stroke-width="1.9" /> 支持证据</div>
           <ul><li v-for="item in product.evidence" :key="item">{{ item }}</li></ul>
-          <div class="source-line">数据来源：{{ product.source }}</div>
+          <div v-if="session.verificationResult?.demo_insights?.reviews.length" class="review-evidence-preview">
+            <div class="review-evidence-preview__heading">
+              <span>平台评论参考</span>
+              <em>演示数据</em>
+            </div>
+            <p>{{ session.verificationResult.demo_insights.reviews[0].content }}</p>
+          </div>
+          <div class="source-line">
+            <span>数据来源：{{ product.source }}</span>
+            <span v-if="product.demoPriceNote" class="demo-source-note">{{ product.demoPriceNote }}</span>
+          </div>
           <div class="card-footer">
             <span>预计到手价 <strong>¥{{ product.price }}</strong> 起</span>
             <button type="button" @click="selectRecommendation(product)">满意这款，查看全网低价 <ChevronRight :size="15" /></button>
@@ -175,12 +203,19 @@ function selectRecommendation(product: DisplayRecommendation) {
 .product-type { display: inline-block; margin-top: 4px; padding: 3px 6px; color: #7290aa; background: #edf3f8; border-radius: 4px; font-size: 10px; }
 .score-line { display: flex; align-items: baseline; gap: 6px; margin-top: 10px; color: #16a89b; font-size: 12px; }
 .score-line strong { font-size: 18px; font-weight: 700; }
+.review-reference { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; margin-top: 6px; color: #617a91; font-size: 10px; }
+.review-reference em, .demo-source-note { color: #a16b00; font-style: normal; }
+.review-reference em { padding: 2px 5px; background: #fff1cf; border-radius: 999px; }
 .recommendation-content h3 { margin: 7px 0 0; font-size: 13px; font-weight: 600; }
 .recommendation-content p, .recommendation-content li { color: #71869b; font-size: 11px; line-height: 1.5; }
 .recommendation-content p { margin: 4px 0 8px; }
 .recommendation-content ul { margin: 5px 0 11px; padding-left: 16px; }
 .recommendation-content li { margin: 2px 0; }
-.source-line { padding-top: 8px; border-top: 1px solid #e4ebf1; color: #8a9bad; font-size: 10px; line-height: 1.45; }
+.review-evidence-preview { margin: 7px 0 10px; padding: 8px 9px; background: #f3f8fb; border: 1px solid #dbe8ef; border-radius: 8px; }
+.review-evidence-preview__heading { display: flex; align-items: center; justify-content: space-between; color: #59758d; font-size: 10px; }
+.review-evidence-preview__heading em { color: #9a6800; font-style: normal; }
+.review-evidence-preview p { margin: 5px 0 0; color: #637b91; font-size: 11px; line-height: 1.5; }
+.source-line { display: flex; flex-direction: column; gap: 3px; padding-top: 8px; border-top: 1px solid #e4ebf1; color: #8a9bad; font-size: 10px; line-height: 1.45; }
 .card-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 10px; border-top: 1px solid #e4ebf1; color: #62778d; font-size: 11px; }
 .card-footer > span strong { color: #192a3e; font-size: 17px; }
 .card-footer button, .primary-action { display: inline-flex; align-items: center; gap: 4px; color: #fff; background: #12a89d; border: 0; border-radius: 8px; padding: 8px 10px; font-size: 11px; font-weight: 500; }
