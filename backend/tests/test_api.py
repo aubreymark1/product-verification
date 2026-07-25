@@ -70,3 +70,68 @@ def test_unknown_entity_returns_api_error() -> None:
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "NOT_FOUND"
 
+
+# ── 成员C 新增测试 ──
+
+def test_evidence_detail_returns_valid() -> None:
+    response = client.get("/api/evidence/evidence_demo_support")
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert data["evidence_id"] == "evidence_demo_support"
+    assert data["source_type"] == "demo_mock"
+
+
+def test_evidence_not_found_returns_error() -> None:
+    response = client.get("/api/evidence/nonexistent")
+    assert response.status_code == 404
+    assert response.json()["error"]["code"] == "NOT_FOUND"
+
+
+def test_conclusion_source_ids_filtering() -> None:
+    """验证：结论中 source_ids 为空的不输出"""
+    response = client.post("/api/verification/run", json={
+        "video_id": "video_demo",
+        "product_id": "demo_product_001",
+        "category_id": "demo_category",
+        "conditions": {},
+        "raw_query": "",
+    })
+    assert response.status_code == 200
+    data = response.json()["data"]
+    for key in ("support", "risks", "uncertain"):
+        for c in data.get(key, []):
+            assert len(c["source_ids"]) > 0, f"{key} conclusion has empty source_ids"
+
+
+def test_retrieval_service() -> None:
+    """验证证据检索服务"""
+    from app.services.retrieval import search_evidence
+    result = search_evidence("demo_product_001", category_id="demo_category")
+    assert result["total"] > 0
+    assert len(result["supporting"]) + len(result["risks"]) + len(result["pending"]) == result["total"]
+
+
+def test_retrieval_insufficient() -> None:
+    """无证据时标记 insufficient"""
+    from app.services.retrieval import search_evidence
+    result = search_evidence("nonexistent_product")
+    assert result["insufficient"] is True
+    assert result["total"] == 0
+
+
+def test_retrieval_dimension_filter() -> None:
+    """验证按证据维度筛选"""
+    from app.services.retrieval import search_evidence
+    result = search_evidence("demo_product_001", dimensions=["risk"])
+    assert result["total"] == 1
+    assert result["risks"][0]["evidence_id"] == "evidence_demo_risk"
+
+
+def test_comparison_add() -> None:
+    response = client.post("/api/comparison/add", json={
+        "product_id": "demo_product_001",
+        "category_id": "demo_category",
+    })
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert data["status"] == "placeholder"
