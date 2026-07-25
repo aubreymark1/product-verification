@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>种草验真 API 功能演示</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f0f2f5; color: #1a1a2e; padding: 24px; }
+h1 { font-size: 26px; margin-bottom: 6px; }
+.sub { color: #6b7280; margin-bottom: 24px; font-size: 14px; }
+.badges { display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; }
+.badge { padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+.badge.ok { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+.badge.err { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+.badge.load { background: #f0f9ff; color: #075985; border: 1px solid #bae6fd; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 18px; }
+.card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
+.card.hl { border-color: #f59e0b; box-shadow: 0 0 0 1px #fef3c7; }
+.card h3 { font-size: 14px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+.desc { color: #6b7280; font-size: 12px; margin-bottom: 10px; }
+.method { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+.method.get { background: #dbeafe; color: #1e40af; }
+.method.post { background: #fce7f3; color: #9d174d; }
+pre { background: #1e293b; color: #e2e8f0; font-size: 11px; line-height: 1.45; padding: 10px; border-radius: 6px; overflow-x: auto; max-height: 320px; white-space: pre-wrap; word-break: break-all; }
+.loading { color: #9ca3af; font-style: italic; font-size: 12px; padding: 8px 0; }
+.summary { margin-top: 32px; padding: 20px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; }
+.summary h3 { margin-bottom: 12px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { padding: 6px 10px; text-align: left; background: #d1fae5; }
+td { padding: 6px 10px; border-bottom: 1px solid #e5e7eb; }
+tr.hl td { background: #fef3c7; font-weight: 600; }
+.contrast { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.contrast strong { font-size: 11px; color: #6b7280; }
+</style>
+</head>
+<body>
+<h1>&#128269; 种草验真 API — 功能仪表盘</h1>
+<p class="sub">成员C · feature/backend-retrieval · 后端所有接口状态一览</p>
+
+<div id="badges" class="badges"></div>
+<div class="grid">
+  <div class="card"><h3><span class="method get">GET</span> /api/health</h3><p class="desc">服务健康检查</p><pre id="r-health" class="loading">加载中…</pre></div>
+  <div class="card"><h3><span class="method get">GET</span> /api/videos/video_demo</h3><p class="desc">视频详情 + 对象框数据</p><pre id="r-video" class="loading">加载中…</pre></div>
+  <div class="card"><h3><span class="method post">POST</span> /api/vision/identify</h3><p class="desc">视觉识别 → 品类 + 候选商品列表</p><pre id="r-identify" class="loading">加载中…</pre></div>
+  <div class="card"><h3><span class="method get">GET</span> /api/categories/demo_category/profile</h3><p class="desc">品类动态字段配置（5种类型）</p><pre id="r-profile" class="loading">加载中…</pre></div>
+  <div class="card hl"><h3><span class="method post">POST</span> /api/verification/run ⭐</h3><p class="desc">验真分析 — 返回 support / risks / uncertain + 置信度</p><pre id="r-verify" class="loading">加载中…</pre></div>
+  <div class="card"><h3><span class="method get">GET</span> /api/evidence/evidence_demo_support</h3><p class="desc">单条证据详情（含来源平台、关联级别等）</p><pre id="r-evidence" class="loading">加载中…</pre></div>
+  <div class="card"><h3><span class="method post">POST</span> /api/comparison/add</h3><p class="desc">加入横评队列（第一阶段占位）</p><pre id="r-comparison" class="loading">加载中…</pre></div>
+  <div class="card hl"><h3>&#128260; 降级验证 对比演示</h3><p class="desc">左侧：预置缓存 / 右侧：实时降级检索结果</p><div class="contrast"><div><strong>&#128230; 预置缓存结果</strong><pre id="r-cached" class="loading">加载中…</pre></div><div><strong>&#128270; 降级检索结果</strong><pre id="r-fallback" class="loading">加载中…</pre></div></div></div>
+</div>
+
+<div class="summary"><h3>&#128203; 当前功能总结</h3>
+<table>
+<thead><tr><th>能力</th><th>实现方式</th><th>状态</th></tr></thead>
+<tbody>
+<tr><td>MockStore 数据层</td><td>从 data/mock/*.json 统一读取，支持 find_by_id / list</td><td>✅</td></tr>
+<tr><td>Pydantic 数据模型</td><td>15+ 类，字段校验 (BBox/Video/Candidate/Conclusion/Evidence…)</td><td>✅</td></tr>
+<tr><td>统一错误处理</td><td>NOT_FOUND / VALIDATION_ERROR / INTERNAL_ERROR</td><td>✅</td></tr>
+<tr><td>视频 + 对象框</td><td>Mock 返回演示视频和归一化 bbox</td><td>✅ Mock</td></tr>
+<tr><td>视觉识别</td><td>Mock → 品类匹配 + 候选商品列表</td><td>✅ Mock</td></tr>
+<tr><td>品类动态配置</td><td>5种字段类型驱动条件表单</td><td>✅ Mock</td></tr>
+<tr class="hl"><td>⭐ 验真分析 (核心)</td><td>双层策略：预置缓存 → 降级检索；过滤空 source_ids</td><td>🆕 已实现</td></tr>
+<tr class="hl"><td>证据检索服务</td><td>精确匹配 → 同品类降级 → 去重排序 → 维度分类</td><td>🆕 已实现</td></tr>
+<tr class="hl"><td>降级验证器</td><td>AI 不可用时自动基于证据构造验证结果</td><td>🆕 已实现</td></tr>
+<tr><td>证据详情</td><td>Mock 返回来源平台、关联级别、置信度等</td><td>✅ Mock</td></tr>
+<tr><td>横评占位</td><td>第二阶段接入</td><td>⏳ 占位</td></tr>
+<tr><td>测试覆盖</td><td>10/10 passed — 含完整流程、降级、source_ids过滤</td><td>✅</td></tr>
+</tbody>
+</table>
+</div>
+
+<script>
+const API = 'http://127.0.0.1:8000/api';
+function el(id) { return document.getElementById(id); }
+function ok(s) { return '<span class="badge ok">✅ ' + s + '</span>'; }
+function err(s) { return '<span class="badge err">❌ ' + s + '</span>'; }
+function load(s) { return '<span class="badge load">⏳ ' + s + '</span>'; }
+function j(o) { return JSON.stringify(o, null, 2); }
+
+const badges = ['health','video','identify','profile','verify','evidence','comparison'];
+badges.forEach(b => el('badges').innerHTML += load(b));
+
+async function call(name, fn) {
+  try {
+    const data = await fn();
+    el('r-' + name).textContent = j(data);
+    el('badges').innerHTML = el('badges').innerHTML.replace(load(name), ok(name));
+  } catch(e) {
+    el('r-' + name).textContent = 'Error: ' + e.message;
+    el('badges').innerHTML = el('badges').innerHTML.replace(load(name), err(name));
+  }
+}
+
+window.onload = async () => {
+  await call('health', () => fetch(API + '/health').then(r => r.json()));
+  await call('video', () => fetch(API + '/videos/video_demo').then(r => r.json()).then(d => d.data));
+  await call('identify', () => fetch(API + '/vision/identify', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({video_id:'video_demo',timestamp:0,selection:{x:0.22,y:0.25,width:0.38,height:0.34}})
+  }).then(r => r.json()).then(d => d.data));
+  await call('profile', () => fetch(API + '/categories/demo_category/profile').then(r => r.json()).then(d => d.data));
+  await call('verify', () => fetch(API + '/verification/run', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({video_id:'video_demo',product_id:'demo_product_001',category_id:'demo_category',conditions:{usage_scene:'场景A'},raw_query:''})
+  }).then(r => r.json()).then(d => d.data));
+  await call('evidence', () => fetch(API + '/evidence/evidence_demo_support').then(r => r.json()).then(d => d.data));
+  await call('comparison', () => fetch(API + '/comparison/add', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({product_id:'demo_product_001',category_id:'demo_category'})
+  }).then(r => r.json()).then(d => d.data));
+  await call('cached', () => fetch(API + '/verification/run', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({video_id:'video_demo',product_id:'demo_product_001',category_id:'demo_category',conditions:{},raw_query:''})
+  }).then(r => r.json()).then(d => d.data));
+  await call('fallback', () => fetch(API + '/verification/run', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({video_id:'video_demo',product_id:'demo_product_002',category_id:'demo_category',conditions:{},raw_query:''})
+  }).then(r => r.json()).then(d => d.data));
+};
+</script>
+</body>
+</html>
