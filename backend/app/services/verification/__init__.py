@@ -28,18 +28,17 @@ def build_fallback_verification(
     result = search_evidence(product_id, category_id=category_id)
     evs = result["supporting"] + result["risks"] + result["pending"]
 
-    def _build_conclusions(items: list[dict]) -> list[Conclusion]:
+    def _build_conclusions(items: list[dict[str, Any]]) -> list[Conclusion]:
         conclusions: list[Conclusion] = []
-        for e in items:
-            sources = e.get("source_ids") or [e.get("source_title", "")]
-            sources = [s for s in sources if s]
-            if not sources:
+        for evidence in items:
+            source_id = evidence.get("evidence_id", "")
+            if not source_id:
                 continue  # 没有来源时不输出
             conclusions.append(Conclusion(
-                id=e.get("evidence_id", ""),
-                claim=e.get("summary", e.get("content", "")),
-                source_ids=sources,
-                confidence=e.get("confidence", 0.5),
+                id=source_id,
+                claim=evidence.get("summary", evidence.get("content", "")),
+                source_ids=[source_id],
+                confidence=evidence.get("confidence", 0.5),
             ))
         return conclusions
 

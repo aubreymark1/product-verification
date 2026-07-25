@@ -10,7 +10,6 @@
 """
 from __future__ import annotations
 
-from typing import Optional
 from app.database.mock_store import mock_store, MockStore
 
 
@@ -72,6 +71,9 @@ def search_evidence(
     # 3. 筛选
     if source_types:
         unique = [e for e in unique if e.get("source_type") in source_types]
+
+    if dimensions:
+        unique = [e for e in unique if e.get("dimension") in dimensions]
 
     # 4. 排序（按 confidence 降序）
     unique.sort(key=lambda e: e.get("confidence", 0), reverse=True)

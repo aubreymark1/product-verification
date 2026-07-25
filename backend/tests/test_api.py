@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.database.mock_store import MockDataNotFound, mock_store
 
 
 client = TestClient(app)
@@ -62,20 +63,29 @@ def test_evidence_not_found_returns_error() -> None:
     assert response.json()["error"]["code"] == "NOT_FOUND"
 
 
-def test_verification_fallback_when_no_cached_result() -> None:
+def test_verification_fallback_when_no_cached_result(monkeypatch) -> None:
     """验证：当没有预置 verification-result 时，走降级逻辑返回结果"""
+    original_find_by_id = mock_store.find_by_id
+
+    def find_without_cached_result(filename: str, key: str, value: str):
+        if filename == "verification-results.json":
+            raise MockDataNotFound("forced fallback test")
+        return original_find_by_id(filename, key, value)
+
+    monkeypatch.setattr(mock_store, "find_by_id", find_without_cached_result)
     response = client.post("/api/verification/run", json={
         "video_id": "video_demo",
-        "product_id": "demo_product_002",
+        "product_id": "demo_product_001",
         "category_id": "demo_category",
         "conditions": {},
         "raw_query": "",
     })
     assert response.status_code == 200
     data = response.json()["data"]
-    # demo_product_002 在 verification-results.json 中有缓存
     assert "summary" in data
     assert "support" in data
+    assert data["confidence"] == 0.7
+    assert data["support"][0]["source_ids"] == ["evidence_demo_support"]
 
 
 def test_conclusion_source_ids_filtering() -> None:
@@ -108,6 +118,14 @@ def test_retrieval_insufficient() -> None:
     result = search_evidence("nonexistent_product")
     assert result["insufficient"] is True
     assert result["total"] == 0
+
+
+def test_retrieval_dimension_filter() -> None:
+    """验证按证据维度筛选"""
+    from app.services.retrieval import search_evidence
+    result = search_evidence("demo_product_001", dimensions=["risk"])
+    assert result["total"] == 1
+    assert result["risks"][0]["evidence_id"] == "evidence_demo_risk"
 
 
 def test_comparison_add() -> None:
