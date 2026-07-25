@@ -53,6 +53,9 @@ class CandidateProduct(BaseModel):
     product_name: str
     confidence: float = Field(ge=0, le=1)
     image_url: str | None = None
+    image_source_url: str | None = None
+    image_source_name: str | None = None
+    image_fetched_at: str | None = None
 
 
 class IdentifyResult(BaseModel):

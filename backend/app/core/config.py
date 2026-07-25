@@ -14,6 +14,12 @@ class Settings:
     openai_vision_enabled: bool = os.getenv("OPENAI_VISION_ENABLED", "false").lower() == "true"
     vision_frame_dir: str | None = os.getenv("VISION_FRAME_DIR")
     openai_vision_context: str = os.getenv("OPENAI_VISION_CONTEXT", "")
+    product_image_search_enabled: bool = os.getenv("PRODUCT_IMAGE_SEARCH_ENABLED", "false").lower() == "true"
+    product_image_search_base_url: str = os.getenv("PRODUCT_IMAGE_SEARCH_BASE_URL", "")
+    product_image_search_provider: str = os.getenv("PRODUCT_IMAGE_SEARCH_PROVIDER", "search")
+    product_image_search_api_key: str | None = os.getenv("PRODUCT_IMAGE_SEARCH_API_KEY") or None
+    product_image_search_timeout_seconds: float = float(os.getenv("PRODUCT_IMAGE_SEARCH_TIMEOUT_SECONDS", "5"))
+    product_image_cache_ttl_seconds: float = float(os.getenv("PRODUCT_IMAGE_CACHE_TTL_SECONDS", "86400"))
 
 
 settings = Settings()

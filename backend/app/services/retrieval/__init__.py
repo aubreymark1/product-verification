@@ -13,6 +13,16 @@ from app.schemas.contracts import (
     SourceType,
     VerificationResult,
 )
+from app.services.retrieval.product_image import (
+    CachedProductImageProvider,
+    NullProductImageProvider,
+    ProductImageProvider,
+    ProductImageRequest,
+    ProductImageResult,
+    SearchImageProvider,
+    TavilyImageProvider,
+    configured_product_image_provider,
+)
 
 
 _RELATION_WEIGHTS = {
@@ -197,7 +207,17 @@ class RetrievalService:
             rows = self.store.list("evidence.json")
         except MockDataNotFound:
             return []
-        return [Evidence.model_validate(row) for row in rows]
+        normalized: list[Evidence] = []
+        for row in rows:
+            payload = dict(row)
+            payload.setdefault("source_type", "demo_mock")
+            payload.setdefault("relation_level", "exact_product")
+            payload.setdefault("summary", payload.get("claim") or payload.get("content") or payload.get("dimension") or "")
+            payload.setdefault("content", payload.get("summary", ""))
+            payload.setdefault("source_title", payload.get("evidence_id", "unknown"))
+            payload.setdefault("source_platform", "unknown")
+            normalized.append(Evidence.model_validate(payload))
+        return normalized
 
     @staticmethod
     def _empty_facts(product_id: str, category_id: str) -> ProductFactsResponse:
