@@ -62,7 +62,8 @@ def test_mock_flow_contract() -> None:
 
     channels = client.get(f"/api/purchase-channels/{candidate['product_id']}")
     assert channels.status_code == 200
-    assert channels.json()["data"] == []
+    assert isinstance(channels.json()["data"], list)
+    assert len(channels.json()["data"]) >= 1
 
 
 def test_unknown_entity_returns_api_error() -> None:
@@ -135,3 +136,64 @@ def test_comparison_add() -> None:
     assert response.status_code == 200
     data = response.json()["data"]
     assert data["status"] == "placeholder"
+
+
+# ── 成员C 新增测试：结果持久化 ──
+
+def test_get_result_returns_cached() -> None:
+    """验证运行后可恢复结果"""
+    result = client.post(
+        "/api/verification/run",
+        json={
+            "video_id": "demo_video_001",
+            "product_id": "atk_a9_ultimate",
+            "category_id": "gaming_mouse",
+            "conditions": {},
+            "raw_query": "",
+        },
+    )
+    assert result.status_code == 200
+    result_id = result.json()["data"]["result_id"]
+
+    # 通过 GET /api/results/{result_id} 恢复
+    response = client.get(f"/api/results/{result_id}")
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert data["result_id"] == result_id
+    # VerificationResult 的 product 字段嵌套在 product 键下
+    assert data["product"]["product_id"] == "atk_a9_ultimate"
+    assert "summary" in data
+
+
+def test_get_result_not_found() -> None:
+    """不存在的 result_id 返回 404"""
+    response = client.get("/api/results/nonexistent_result")
+    assert response.status_code == 404
+    assert response.json()["error"]["code"] == "NOT_FOUND"
+
+
+# ── 成员C 新增测试：购买渠道 ──
+
+def test_purchase_channels_structure() -> None:
+    """验证购买渠道返回结构正确"""
+    response = client.get("/api/purchase-channels/atk_a9_ultimate")
+    assert response.status_code == 200
+    channels = response.json()["data"]
+    assert isinstance(channels, list)
+    assert len(channels) > 0, "ATK A9 Ultimate 应有购买渠道"
+    for ch in channels:
+        assert "channel_id" in ch
+        assert "product_id" in ch
+        assert ch["product_id"] == "atk_a9_ultimate"
+        assert "channel_name" in ch
+        assert "channel_type" in ch
+        assert ch["channel_type"] in ("official", "marketplace", "retail", "other")
+        assert "availability" in ch
+
+
+def test_purchase_channels_empty_for_unknown() -> None:
+    """未知商品返回空列表"""
+    response = client.get("/api/purchase-channels/unknown_product")
+    assert response.status_code == 200
+    channels = response.json()["data"]
+    assert channels == []

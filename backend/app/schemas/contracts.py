@@ -175,3 +175,47 @@ class ComparisonResult(BaseModel):
     product_ids: list[str]
     status: Literal["placeholder"]
     message: str
+
+
+# ── 商品事实模型（成员C：品类无关，避免写死具体字段）──
+
+class ProductFact(BaseModel):
+    """单一商品事实，通过 key/value 保持品类无关。"""
+    fact_id: str
+    product_id: str
+    category_id: str
+    key: str
+    label: str
+    value: str
+    confidence: float = Field(default=0, ge=0, le=1)
+    source_type: SourceType = "demo_mock"
+    source_ids: list[str] = Field(default_factory=list)
+
+
+class ProductFactsResponse(BaseModel):
+    """商品事实集合的响应包装。"""
+    product_id: str
+    category_id: str
+    facts: list[ProductFact] = Field(default_factory=list)
+    total: int = 0
+    insufficient: bool = False
+
+
+# ── 结果持久化模型（成员C：支持重新打开结果链接）──
+
+class StoredResult(BaseModel):
+    """可持久化的验证结果，用于 GET /api/results/{result_id}。"""
+    result_id: str
+    product_id: str
+    category_id: str
+    conditions: dict[str, Any] = Field(default_factory=dict)
+    raw_query: str = ""
+    round: int = Field(default=1, ge=1)
+    is_follow_up: bool = False
+    needs_inherited: bool = False
+    recommendation_score: float = Field(default=0, ge=0, le=1)
+    summary: str = ""
+    support: list[Conclusion] = Field(default_factory=list)
+    risks: list[Conclusion] = Field(default_factory=list)
+    uncertain: list[Conclusion] = Field(default_factory=list)
+    created_at: str | None = None
