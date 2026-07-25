@@ -71,6 +71,48 @@ export interface Conclusion {
   confidence: number
 }
 
+export type RequirementPriority = 'must' | 'important' | 'preference'
+export type MatchStatus = 'satisfied' | 'conflict' | 'unknown'
+export type AnalysisMode = 'ai' | 'rule' | 'degraded'
+
+export interface ProductFact {
+  fact_id: string
+  key: string
+  label: string
+  value: string
+  source_ids: string[]
+  confidence: number
+}
+
+export interface RequirementAnalysisItem {
+  requirement_id: string
+  key: string
+  label: string
+  value: string
+  priority: RequirementPriority
+  weight: number
+  status: MatchStatus
+  rationale: string
+  product_facts: ProductFact[]
+  source_ids: string[]
+}
+
+export interface DecisionTrace {
+  requirement_id: string
+  requirement: string
+  fact_ids: string[]
+  source_ids: string[]
+  status: MatchStatus
+  conclusion: string
+}
+
+export interface UnknownItem {
+  requirement_id: string
+  label: string
+  reason: string
+  needed_evidence: string
+}
+
 export interface VerificationResult {
   result_id: string
   product: CandidateProduct
@@ -81,6 +123,12 @@ export interface VerificationResult {
   needs_inherited: boolean
   recommendation_score: number
   recommendation_basis: RecommendationDimension[]
+  requirement_analysis: RequirementAnalysisItem[]
+  product_facts: ProductFact[]
+  decision_chain: DecisionTrace[]
+  unknown_items: UnknownItem[]
+  analysis_mode: AnalysisMode
+  change_summary: string
   summary: string
   support: Conclusion[]
   risks: Conclusion[]
