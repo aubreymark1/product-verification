@@ -1,0 +1,213 @@
+{
+  "items": [
+    {
+      "channel_id": "ch_official_atk",
+      "product_id": "atk_a9_ultimate",
+      "channel_name": "ATK官方旗舰店",
+      "channel_type": "抖音官方店",
+      "price": 299.0,
+      "status": "现货",
+      "policy": "7天无理由，1年质保",
+      "is_mock": true,
+      "source_type": "demo_mock"
+    },
+    {
+      "channel_id": "ch_authorized_atk",
+      "product_id": "atk_a9_ultimate",
+      "channel_name": "某某授权专营店",
+      "channel_type": "抖音授权店",
+      "price": 295.0,
+      "status": "预售 (3天)",
+      "policy": "官方联保",
+      "is_mock": true,
+      "source_type": "demo_mock"
+    },
+    {
+      "channel_id": "ch_douyin_atk",
+      "product_id": "atk_a9_ultimate",
+      "channel_name": "抖音商城自营",
+      "channel_type": "平台自营",
+      "price": 299.0,
+      "status": "现货",
+      "policy": "平台运费险，极速退款",
+      "is_mock": true,
+      "source_type": "demo_mock"
+    },
+    {
+      "channel_id": "ch_official_logitech",
+      "product_id": "logitech_gpw_1",
+      "channel_name": "罗技官方旗舰店",
+      "channel_type": "抖音官方店",
+      "price": 349.0,
+      "status": "现货",
+      "policy": "7天无理由，2年质保",
+      "is_mock": true,
+      "source_type": "demo_mock"
+    },
+    {
+      "channel_id": "ch_jd_logitech",
+      "product_id": "logitech_gpw_1",
+      "channel_name": "罗技京东自营",
+      "channel_type": "京东自营",
+      "price": 369.0,
+      "status": "现货",
+      "policy": "京东次日达，7天无理由",
+      "is_mock": true,
+      "source_type": "demo_mock"
+    },
+    {
+      "channel_id": "ch_official_razer",
+      "product_id": "razer_viper_v3_pro",
+      "channel_name": "雷蛇官方旗舰店",
+      "channel_type": "抖音官方店",
+      "price": 899.0,
+      "status": "现货",
+      "policy": "7天无理由，2年质保",
+      "is_mock": true,
+      "source_type": "demo_mock"
+    },
+    {
+      "channel_id": "ch_tmall_razer",
+      "product_id": "razer_viper_v3_pro",
+      "channel_name": "雷蛇天猫旗舰店",
+      "channel_type": "天猫官方店",
+      "price": 899.0,
+      "status": "现货",
+      "policy": "顺丰包邮，7天无理由",
+      "is_mock": true,
+      "source_type": "demo_mock"
+    },
+    {
+      "channel_id": "ch_official_vxe",
+      "product_id": "vxe_r1_pro",
+      "channel_name": "VXE官方旗舰店",
+      "channel_type": "抖音官方店",
+      "price": 169.0,
+      "status": "现货",
+      "policy": "7天无理由，1年质保",
+      "is_mock": true,
+      "source_type": "demo_mock"
+    },
+    {
+      "channel_id": "ch_tmall_vxe",
+      "product_id": "vxe_r1_pro",
+      "channel_name": "VXE天猫旗舰店",
+      "channel_type": "天猫官方店",
+      "price": 179.0,
+      "status": "现货",
+      "policy": "7天无理由，送防滑贴",
+      "is_mock": true,
+      "source_type": "demo_mock"
+    },
+    {
+      "channel_id": "ch_official_mchose",
+      "product_id": "mchose_a5_pro",
+      "channel_name": "迈从官方旗舰店",
+      "channel_type": "抖音官方店",
+      "price": 199.0,
+      "status": "现货",
+      "policy": "7天无理由，1年质保",
+      "is_mock": true,
+      "source_type": "demo_mock"
+    },
+    {
+      "channel_id": "ch_jd_mchose",
+      "product_id": "mchose_a5_pro",
+      "channel_name": "迈从京东自营",
+      "channel_type": "京东自营",
+      "price": 219.0,
+      "status": "现货",
+      "policy": "京东次日达，送鼠标垫",
+      "is_mock": true,
+      "source_type": "demo_mock"
+    },
+    {
+      "channel_id": "ch_official_edifier",
+      "product_id": "edifier_g3m_pro",
+      "channel_name": "漫步者官方旗舰店",
+      "channel_type": "抖音官方店",
+      "price": 169.0,
+      "status": "现货",
+      "policy": "7天无理由，1年质保",
+      "is_mock": true,
+      "source_type": "demo_mock"
+    },
+    {
+      "channel_id": "ch_jd_edifier",
+      "product_id": "edifier_g3m_pro",
+      "channel_name": "漫步者京东自营",
+      "channel_type": "京东自营",
+      "price": 189.0,
+      "status": "预售 (5天)",
+      "policy": "京东次日达，7天无理由",
+      "is_mock": true,
+      "source_type": "demo_mock"
+    },
+    {
+      "channel_id": "ch_official_gpx2",
+      "product_id": "logitech_gpx_2",
+      "channel_name": "罗技官方旗舰店",
+      "channel_type": "抖音官方店",
+      "price": 599.0,
+      "status": "现货",
+      "policy": "7天无理由，2年质保",
+      "is_mock": true,
+      "source_type": "demo_mock"
+    },
+    {
+      "channel_id": "ch_jd_gpx2",
+      "product_id": "logitech_gpx_2",
+      "channel_name": "罗技京东自营",
+      "channel_type": "京东自营",
+      "price": 629.0,
+      "status": "现货",
+      "policy": "京东次日达，赠G640鼠标垫",
+      "is_mock": true,
+      "source_type": "demo_mock"
+    },
+    {
+      "channel_id": "ch_official_ajazz",
+      "product_id": "ajazz_aj159_apex",
+      "channel_name": "黑爵官方旗舰店",
+      "channel_type": "抖音官方店",
+      "price": 139.0,
+      "status": "现货",
+      "policy": "7天无理由，1年质保",
+      "is_mock": true,
+      "source_type": "demo_mock"
+    },
+    {
+      "channel_id": "ch_tmall_ajazz",
+      "product_id": "ajazz_aj159_apex",
+      "channel_name": "黑爵天猫旗舰店",
+      "channel_type": "天猫官方店",
+      "price": 149.0,
+      "status": "现货",
+      "policy": "送备用脚贴，7天无理由",
+      "is_mock": true,
+      "source_type": "demo_mock"
+    },
+    {
+      "channel_id": "ch_official_zowie",
+      "product_id": "zowie_fk2_dw",
+      "channel_name": "卓威官方旗舰店",
+      "channel_type": "抖音官方店",
+      "price": 999.0,
+      "status": "现货",
+      "policy": "7天无理由，2年质保",
+      "is_mock": true,
+      "source_type": "demo_mock"
+    },
+    {
+      "channel_id": "ch_jd_zowie",
+      "product_id": "zowie_fk2_dw",
+      "channel_name": "卓威京东自营",
+      "channel_type": "京东自营",
+      "price": 1079.0,
+      "status": "现货",
+      "policy": "京东次日达，送收纳包",
+      "is_mock": true,
+      "source_type": "demo_mock"
+    }
+  ]
+}

@@ -51,6 +51,8 @@ const candidates = computed(() => identifyResult.value?.candidates ?? [])
 const selectedCandidate = computed(() => candidates.value.find((item) => item.product_id === selectedCandidateId.value) ?? null)
 const rawQueryText = ref('')
 const isRecording = ref(false)
+const videoError = ref('')
+const identifyError = ref('')
 
 // Options selections
 const selectedBudget = ref('<300')
@@ -91,17 +93,20 @@ function handlePause() {
 }
 
 async function loadVideo(videoId: string) {
+  videoError.value = ''
   try {
     const video = await api.getVideo(videoId)
     videoSrc.value = video.video_url ?? '/assets/mock/videos/main_demo.mp4'
     const object = video.objects[0]
     if (object) await identifyObject(videoId, object.bbox)
   } catch (error) {
+    videoError.value = '视频信息加载失败，请重试或重新上传视频'
     console.warn('视频元数据加载失败，保留当前演示画面', error)
   }
 }
 
 async function identifyObject(videoId: string, selection: BBox) {
+  identifyError.value = ''
   try {
     const result = await api.identify(videoId, 0, selection)
     identifyResult.value = result
@@ -109,6 +114,7 @@ async function identifyObject(videoId: string, selection: BBox) {
     if (result.candidates[0]) selectCandidate(result.candidates[0])
   } catch (error) {
     identifyResult.value = null
+    identifyError.value = '未识别到可确认商品，请重新圈选或上传视频'
     session.setIdentification({ category_id: '', category_name: '', visual_attributes: {}, candidates: [] })
     console.warn('视频对象识别失败，等待用户重新选择或上传视频', error)
   }
@@ -127,6 +133,8 @@ async function handleUpload(event: Event) {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0]
   if (!file) return
+  videoError.value = ''
+  identifyError.value = ''
   try {
     const video = await api.uploadVideo(file)
     session.videoId = video.video_id
@@ -136,6 +144,7 @@ async function handleUpload(event: Event) {
     identifyResult.value = null
     if (video.objects[0]) await identifyObject(video.video_id, video.objects[0].bbox)
   } catch (error) {
+    videoError.value = '视频上传失败，请选择有效的视频文件后重试'
     console.error('视频上传失败', error)
   } finally {
     input.value = ''
@@ -152,6 +161,7 @@ function openVerificationDrawer() {
 }
 
 function confirmProductStep() {
+  if (!selectedCandidateId.value || !session.categoryId) return
   isAddingNewRequirement.value = false
   drawerStep.value = 2
 }
@@ -372,6 +382,8 @@ async function openEvidenceDetail(id: string) {
         <div v-if="drawerStep === 1" class="drawer-step">
           <div class="section-subtitle">根据视频内容自动匹配候选目标:</div>
 
+          <div v-if="videoError || identifyError" class="product-sub-spec">{{ videoError || identifyError }}</div>
+
           <div class="candidate-cards-list">
             <template v-if="candidates.length">
               <div
@@ -381,7 +393,9 @@ async function openEvidenceDetail(id: string) {
                 :class="{ selected: selectedCandidateId === candidate.product_id }"
                 @click="selectCandidate(candidate)"
               >
-                <div class="card-left-img"></div>
+                <div class="card-left-img">
+                  <img v-if="candidate.image_url" :src="candidate.image_url" :alt="candidate.product_name" />
+                </div>
                 <div class="card-right-info">
                   <div class="info-top-row">
                     <span class="product-title-text">{{ candidate.product_name }}</span>
@@ -403,7 +417,9 @@ async function openEvidenceDetail(id: string) {
         <div v-else-if="drawerStep === 2" class="drawer-step step-2-native">
           <!-- 5. 已识别商品卡片 (二级容器 #121824，边框 rgba(255,255,255,0.08)) -->
           <div class="identified-product-card">
-            <div class="product-thumb"></div>
+            <div class="product-thumb">
+              <img v-if="selectedCandidate?.image_url" :src="selectedCandidate.image_url" :alt="selectedCandidate.product_name" />
+            </div>
             <div class="product-meta">
               <span class="meta-label">已识别商品</span>
               <span class="meta-title">{{ selectedCandidate?.product_name || '等待识别商品' }}</span>
@@ -737,6 +753,14 @@ async function openEvidenceDetail(id: string) {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+}
+
+.card-left-img img,
+.product-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
 }
 
 .img-icon {

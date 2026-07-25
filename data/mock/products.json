@@ -5,7 +5,7 @@
       "category_id": "gaming_mouse",
       "product_name": "ATK A9 Ultimate 大师版",
       "confidence": 0.98,
-      "image_url": "/assets/mock/products/62e1042760e7bac7a95e2a27a8bfde1e.png",
+      "image_url": "/assets/mock/products/atk_a9_ultimate_01_main.jpg",
       "brand": "ATK",
       "price": 399.0,
       "attributes": {
@@ -20,29 +20,145 @@
     {
       "product_id": "logitech_gpw_1",
       "category_id": "gaming_mouse",
-      "product_name": "罗技 G Pro Wireless (GPW 一代)",
+      "product_name": "罗技 GPW 一代（G Pro Wireless）",
       "confidence": 0.85,
-      "image_url": "/assets/mock/products/00835a05a0040412.jpg.avif",
+      "image_url": "/assets/mock/products/52f8bf998d66c1784ccfd3f429e85ca9.jpg",
       "brand": "罗技",
-      "price": 399.0
+      "price": 349.0,
+      "relation_level": "likely_same_product",
+      "attributes": {
+        "sensor": "HERO 25K",
+        "weight": "80g",
+        "battery_life": "60h",
+        "connectivity": "2.4GHz无线/USB有线双模"
+      },
+      "alternative_evidence": "模具血统高度一致：ATK A9 的背弧与收腰设计大幅借鉴了 GPW 经典的中大手万金油模具，手感过渡成本几乎为零。传输与稳定性标杆：LIGHTSPEED 无线技术与 HERO 25K 传感器历经多年职业赛场锤炼，抗干扰和稳定性极佳。成熟改装生态：配备左右手可拆卸磁吸侧键，按键板与外壳做工稳固，第三方脚贴、防滑贴等周边极为成熟。"
     },
     {
       "product_id": "razer_viper_v3_pro",
       "category_id": "gaming_mouse",
-      "product_name": "雷蛇 毒蝰 V3 Pro",
+      "product_name": "雷蛇 毒蝰 V3 专业版（Razer Viper V3 Pro）",
       "confidence": 0.92,
-      "image_url": "/assets/mock/products/00835a05a0bc137b.jpg.avif",
+      "image_url": "/assets/mock/products/99cc97a73c37a2ef533083c443925392.jpg",
       "brand": "雷蛇",
-      "price": 899.0
+      "price": 899.0,
+      "relation_level": "exact_product",
+      "attributes": {
+        "sensor": "Focus Pro 35K",
+        "weight": "54g",
+        "battery_life": "90h",
+        "polling_rate": "8K",
+        "connectivity": "HyperSpeed 2.4GHz无线/USB有线双模"
+      },
+      "alternative_evidence": "低背收腰顶配对标：A9 的侧面凹陷与平缓背弧带有毒蝰系基因，毒蝰 V3 Pro 是该模具形态在千元预算段的终极形态。极限传感器性能：搭载 Focus Pro 35K 第二代光学传感器，支持原生无线 8000Hz 轮询率，拉枪追踪精准度顶级。职业选手背书与涂层：顶级 FPS 职业哥主力战机，表面哑光抗汗涂层手感显著优于中低端平替。"
     },
     {
       "product_id": "vxe_r1_pro",
       "category_id": "gaming_mouse",
       "product_name": "VXE 蜻蜓 R1 Pro",
-      "confidence": 0.8,
-      "image_url": "/assets/mock/products/f545edfaca10b0ad7150c14946e99d7c.png",
+      "confidence": 0.85,
+      "image_url": "/assets/mock/products/c7a8d903db9fa114524176aac987ddf7.jpg",
       "brand": "VXE",
-      "price": 199.0
+      "price": 169.0,
+      "relation_level": "similar_product",
+      "attributes": {
+        "sensor": "PAW3395",
+        "weight": "48g",
+        "battery_life": "75h",
+        "mcu": "Nordic",
+        "connectivity": "2.4GHz无线/蓝牙/USB有线三模"
+      },
+      "alternative_evidence": "同厂牌性价比下替：与 ATK 同属 VGN 生态体系，PAW3395 + Nordic 主控的方案调校成熟，是预算有限时的极致性价比备选。尺寸微调补位：机身较 A9 略微收缩（120.6mm 长度），能极好地满足中小手或纯指握玩家对「缩小版 A9」的需求。高保有量与口碑：市场保有量大，空行程与按键手感经过多轮修正，售后与成熟度极佳。"
+    },
+    {
+      "product_id": "mchose_a5_pro",
+      "category_id": "gaming_mouse",
+      "product_name": "迈从 (MCHOSE) A5 Pro",
+      "confidence": 0.85,
+      "image_url": "/assets/mock/products/aaffdc7fe50e123f6bfbbadd1a837d3a.jpg",
+      "brand": "迈从",
+      "price": 199.0,
+      "relation_level": "similar_product",
+      "attributes": {
+        "sensor": "PAW3395",
+        "weight": "56g-59g",
+        "battery_life": "130h",
+        "mcu": "Nordic",
+        "connectivity": "2.4GHz无线/蓝牙/USB有线三模"
+      },
+      "alternative_evidence": "「小 GPW」精准等比例缩小：外观曲线极其贴近 GPW 和 A9，但尺寸缩小了一圈（121.6mm），适合喜欢 A9 掌心支撑感但手型偏小的玩家。轻量与高回报率扩展：在 200 元档位提供了 PAW3395 + Nordic 芯片，支持扩展 4K/8K 接收器，灵活性极高。百元级抓握舒适度：侧边收腰适中，对于轻量化抓握玩家来说上手难度极低。"
+    },
+    {
+      "product_id": "edifier_g3m_pro",
+      "category_id": "gaming_mouse",
+      "product_name": "漫步者 (EDIFIER) G3M Pro",
+      "confidence": 0.78,
+      "image_url": "/assets/mock/products/420ca555da78c3cbccb3aedf9e563eca.jpg",
+      "brand": "漫步者",
+      "price": 169.0,
+      "relation_level": "similar_product",
+      "attributes": {
+        "sensor": "PAW3395",
+        "weight": "63g",
+        "battery_life": "70h",
+        "feature": "物理双微动切换（竞技/静音）",
+        "connectivity": "2.4GHz无线/蓝牙/USB有线三模"
+      },
+      "alternative_evidence": "独家物理双微动切换：底部配备物理拨档，可在「清脆竞技微动」与「静音办公微动」间一键切换，兼顾宿舍深夜游戏不打扰他人。万金油对称小背弧：118.7mm 的短款对称设计，搭载 PAW3395 传感器，游戏定位精准。功能差异化替代：如果购买鼠标不仅是打游戏，还需要图书馆/办公静音，它是唯一的物理双模替代选择。"
+    },
+    {
+      "product_id": "logitech_gpx_2",
+      "category_id": "gaming_mouse",
+      "product_name": "罗技 GPW 二代（G Pro X Superlight）",
+      "confidence": 0.92,
+      "image_url": "/assets/mock/products/a1421395b1ea2c0b8211b175c6bba5bb.jpg",
+      "brand": "罗技",
+      "price": 599.0,
+      "relation_level": "exact_product",
+      "attributes": {
+        "sensor": "HERO 25K",
+        "weight": "63g",
+        "battery_life": "70h",
+        "connectivity": "2.4GHz LIGHTSPEED无线/USB有线双模"
+      },
+      "alternative_evidence": "正统原厂轻量化进阶：沿用与 A9 灵感来源完全一致的 125mm 中大手万金油模具，将重量大幅下探至 63g。极佳的功耗与软件控制：HERO 25K 传感器功耗极低，G HUB 软件生态完善，长时间使用非常省心。二手保值与赛场占有率：大厂售后体系健全，保值率高，且仍是全球各大 FPS 赛事中职业选手选择率最高的鼠标之一。"
+    },
+    {
+      "product_id": "ajazz_aj159_apex",
+      "category_id": "gaming_mouse",
+      "product_name": "黑爵 (AJAZZ) AJ159 APEX",
+      "confidence": 0.85,
+      "image_url": "/assets/mock/products/6b1ff2a767ab7028ee5d07ae35cc0429.jpg",
+      "brand": "黑爵",
+      "price": 139.0,
+      "relation_level": "similar_product",
+      "attributes": {
+        "sensor": "PAW3950",
+        "weight": "56g",
+        "battery_life": "40h-80h",
+        "polling_rate": "8K",
+        "feature": "彩屏磁吸充电底座",
+        "connectivity": "2.4GHz无线/蓝牙/USB有线三模"
+      },
+      "alternative_evidence": "顶级传感器直接对标：与 A9 大师版一样搭载 PAW3950 旗舰传感器，且原生支持无线 8000Hz 轮询率，纸面性能给满。附带彩屏磁吸座充：随盒附送一块带彩色小屏幕的磁吸充电底座，可显示参数、电量及自定义 GIF 动画，桌搭观赏度极高。价格屠夫级配置：以不足 200 元的价格集齐顶级传感器、8K 无线和磁吸底座，适合预算敏感的堆料党。"
+    },
+    {
+      "product_id": "zowie_fk2_dw",
+      "category_id": "gaming_mouse",
+      "product_name": "卓威 (ZOWIE) FK2-DW 无线版",
+      "confidence": 0.92,
+      "image_url": "/assets/mock/products/c892269aff151bfe8c3a86b6e10d8bc3.jpg",
+      "brand": "卓威",
+      "price": 999.0,
+      "relation_level": "exact_product",
+      "attributes": {
+        "sensor": "PMW3360",
+        "weight": "73g",
+        "battery_life": "70h",
+        "feature": "免驱直用/物理按键调节/增强接收基站",
+        "connectivity": "2.4GHz无线（专属增强基站）/USB有线双模"
+      },
+      "alternative_evidence": "经典低背对称鼻祖：FK 系列作为低背对称模具的开山之作，与 A9 一样擅长灵活的抓握与指握，物理定位感与平移拉枪极为稳定。独家强化抗干扰基站：随机配备大型无线增强接收基站（兼作充电座），在复杂的线下比赛或多无线设备环境下，信号抗干扰能力行业独一档。免驱直用与纯粹赛场设计：所有 DPI、回报率、响应时间均在鼠标底部通过物理按键调节，无需后台驱动，即插即用且稳定性极高。"
     }
   ]
 }

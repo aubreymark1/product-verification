@@ -1,0 +1,194 @@
+
+
+
+
+
+
+
+
+
+
+
+
+{
+  "meta": {
+    "data_type": "user_profile",
+    "category_id": "gaming_mouse",
+    "total_profiles": 10,
+    "description": "10组差异化用户画像，覆盖预算、连接方式、用途场景、重量偏好和材质需求五个维度，用于验证推荐系统是否随需求变化产生不同排序结果",
+    "is_mock": true,
+    "source_type": "demo_mock"
+  },
+  "items": [
+    {
+      "profile_id": "persona_001",
+      "name": "FPS轻量竞技玩家",
+      "description": "预算有限的FPS玩家，看重轻量化和防滑手感",
+      "budget_min": 0,
+      "budget_max": 300,
+      "usage_scenarios": ["FPS竞技游戏"],
+      "preferred_weight_min": 50,
+      "preferred_weight_max": 60,
+      "connectivity": ["2.4GHz无线", "USB有线"],
+      "material_preference": "PBT防滑塑料",
+      "conditions": {
+        "hand_size": "中手 (17-19cm)",
+        "grip_style": "抓握"
+      },
+      "raw_query": "预算300以内，需要无线连接，主要用于FPS竞技游戏，希望重量在55g左右轻量化，偏好PBT防滑塑料材质"
+    },
+    {
+      "profile_id": "persona_002",
+      "name": "宿舍静音多场景学生",
+      "description": "需要宿舍深夜静音使用，兼顾游戏与办公的多场景学生用户",
+      "budget_min": 0,
+      "budget_max": 300,
+      "usage_scenarios": ["深夜游戏", "日常办公"],
+      "preferred_weight_min": 58,
+      "preferred_weight_max": 68,
+      "connectivity": ["2.4GHz无线", "蓝牙", "USB有线"],
+      "material_preference": "ABS哑光类肤",
+      "conditions": {
+        "hand_size": "中手 (17-19cm)",
+        "grip_style": "抓握"
+      },
+      "raw_query": "预算300以内，需要三模连接方便宿舍和图书馆切换，主要用于宿舍深夜游戏与日常办公不能打扰室友，重量63g左右中规中矩即可，偏好ABS哑光类肤材质"
+    },
+    {
+      "profile_id": "persona_003",
+      "name": "桌面桌搭高回报率玩家",
+      "description": "追求桌面视觉效果和高回报率游戏体验的玩家",
+      "budget_min": 0,
+      "budget_max": 300,
+      "usage_scenarios": ["桌搭娱乐", "高回报率游戏"],
+      "preferred_weight_min": 50,
+      "preferred_weight_max": 62,
+      "connectivity": ["2.4GHz无线", "蓝牙", "USB有线"],
+      "material_preference": "ABS注塑磨砂",
+      "conditions": {
+        "hand_size": "中手 (17-19cm)",
+        "grip_style": "趴握"
+      },
+      "raw_query": "预算300以内，必须三模连接，用于桌面桌搭与高回报率游戏体验，重量在56g左右轻量化即可，偏好ABS注塑磨砂材质"
+    },
+    {
+      "profile_id": "persona_004",
+      "name": "中小手极致轻量FPS玩家",
+      "description": "手型偏小的FPS玩家，追求极致轻量化以提升快速拉枪操作",
+      "budget_min": 0,
+      "budget_max": 300,
+      "usage_scenarios": ["FPS快速拉枪"],
+      "preferred_weight_min": 43,
+      "preferred_weight_max": 53,
+      "connectivity": ["2.4GHz无线", "USB有线"],
+      "material_preference": "ABS细磨砂",
+      "conditions": {
+        "hand_size": "小手 (17cm以下)",
+        "grip_style": "抓握"
+      },
+      "raw_query": "预算300以内，需要无线连接，中小手型抓握用于FPS快速拉枪操作，追求48g极致轻量，偏好ABS细磨砂材质"
+    },
+    {
+      "profile_id": "persona_005",
+      "name": "经典万金油全能玩家",
+      "description": "偏好经典对称模具的全能型玩家，追求舒适的万金油手感",
+      "budget_min": 300,
+      "budget_max": 500,
+      "usage_scenarios": ["全能游戏"],
+      "preferred_weight_min": 75,
+      "preferred_weight_max": 85,
+      "connectivity": ["2.4GHz无线", "USB有线"],
+      "material_preference": "ABS经典类肤",
+      "conditions": {
+        "hand_size": "大手 (19cm以上)",
+        "grip_style": "趴握"
+      },
+      "raw_query": "预算300到500，需要无线连接，偏好经典万金油对称模具设计用于全能游戏场景，重量80g适中即可，喜欢ABS经典类肤质感"
+    },
+    {
+      "profile_id": "persona_006",
+      "name": "高回报率电竞办公双栖",
+      "description": "需要极速高回报率满足电竞需求，同时兼顾日常办公使用",
+      "budget_min": 300,
+      "budget_max": 500,
+      "usage_scenarios": ["极速电竞", "日常办公"],
+      "preferred_weight_min": 49,
+      "preferred_weight_max": 59,
+      "connectivity": ["2.4GHz无线", "蓝牙", "USB有线"],
+      "material_preference": "哑光防滑涂层",
+      "conditions": {
+        "hand_size": "中手 (17-19cm)",
+        "grip_style": "抓握"
+      },
+      "raw_query": "预算300到500，必须三模连接，用于极速高回报率电竞比赛和日常办公，追求54g轻量化，偏好哑光防滑涂层材质"
+    },
+    {
+      "profile_id": "persona_007",
+      "name": "原厂轻量化旗舰电竞选手",
+      "description": "追求原厂万金油模具与轻量化结合的高端电竞玩家",
+      "budget_min": 500,
+      "budget_max": 9999,
+      "usage_scenarios": ["轻量化纯血电竞"],
+      "preferred_weight_min": 58,
+      "preferred_weight_max": 68,
+      "connectivity": ["2.4GHz无线", "USB有线"],
+      "material_preference": "ABS抗指纹涂层",
+      "conditions": {
+        "hand_size": "中手 (17-19cm)",
+        "grip_style": "抓握"
+      },
+      "raw_query": "预算充足500以上，需要无线连接，追求原厂万金油模具的轻量化纯血电竞体验，重量63g左右，偏好ABS抗指纹涂层保持外观整洁"
+    },
+    {
+      "profile_id": "persona_008",
+      "name": "旗舰职业FPS竞技选手",
+      "description": "追求旗舰级传感器和极致轻量的职业FPS竞技选手",
+      "budget_min": 500,
+      "budget_max": 9999,
+      "usage_scenarios": ["职业FPS竞技"],
+      "preferred_weight_min": 49,
+      "preferred_weight_max": 59,
+      "connectivity": ["2.4GHz无线", "USB有线"],
+      "material_preference": "细哑光抗汗涂层",
+      "conditions": {
+        "hand_size": "中手 (17-19cm)",
+        "grip_style": "抓握"
+      },
+      "raw_query": "预算充足500以上，需要无线连接，追求旗舰级职业FPS竞技体验，重量54g极致轻量，必须带细哑光抗汗涂层防止比赛中手滑脱手"
+    },
+    {
+      "profile_id": "persona_009",
+      "name": "线下赛事免驱纯粹电竞选手",
+      "description": "专注于线下赛事、偏好免驱即用的纯粹竞技体验",
+      "budget_min": 500,
+      "budget_max": 9999,
+      "usage_scenarios": ["线下赛事竞技"],
+      "preferred_weight_min": 68,
+      "preferred_weight_max": 78,
+      "connectivity": ["2.4GHz无线", "USB有线"],
+      "material_preference": "PBT耐磨磨砂",
+      "conditions": {
+        "hand_size": "大手 (19cm以上)",
+        "grip_style": "抓握"
+      },
+      "raw_query": "预算充足500以上，需要无线连接，专用于线下赛事免驱即插即用的纯粹电竞场景，重量73g沉稳平衡，偏好PBT耐磨磨砂材质经久耐用"
+    },
+    {
+      "profile_id": "persona_010",
+      "name": "有线低延迟性价比玩家",
+      "description": "坚守有线连接以追求极限低延迟，同时严格控制预算的性价比玩家",
+      "budget_min": 0,
+      "budget_max": 300,
+      "usage_scenarios": ["低延迟竞技游戏"],
+      "preferred_weight_min": 45,
+      "preferred_weight_max": 55,
+      "connectivity": ["USB有线"],
+      "material_preference": "ABS普通磨砂",
+      "conditions": {
+        "hand_size": "中手 (17-19cm)",
+        "grip_style": "抓握"
+      },
+      "raw_query": "预算300以内，坚持有线连接追求极限低延迟，用于极致性价比竞技游戏体验，重量50g超轻，材质ABS普通磨砂即可不求花哨"
+    }
+  ]
+}

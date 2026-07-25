@@ -2,25 +2,171 @@
   "items": [
     {
       "result_id": "res_001",
+      "video_id": "demo_video_001",
       "product_id": "atk_a9_ultimate",
       "category_id": "gaming_mouse",
-      "product": {
-        "product_id": "atk_a9_ultimate",
-        "product_name": "ATK A9 Ultimate 大师版",
-        "confidence": 0.98,
-        "image_url": "/assets/mock/products/62e1042760e7bac7a95e2a27a8bfde1e.png"
+      "recommendation": {
+        "match_score": 0.88,
+        "summary": "ATK A9 Ultimate 大师版在轻量化（58g）、双 8K 回报率及纳米涂层方面表现均衡，是当前预算段的标杆选择。",
+        "match_tags": [
+          "轻量化 58g",
+          "双 8K 回报率",
+          "纳米冰感涂层",
+          "800mAh 续航 600h",
+          "PAW3950 Ultra 传感器"
+        ]
       },
-      "conditions": {},
-      "summary": "当前证据显示 ATK A9 大师版具备旗舰级性能和较强续航表现，适合竞技类场景，但首批个别批次仍需关注做工稳定性。",
-      "support": [
-        {"id": "claim_001", "claim": "搭载顶级 PAW3950 传感器，定位精准。", "source_ids": ["ev_video_002"], "confidence": 0.98},
-        {"id": "claim_002", "claim": "续航表现突出，长时间使用仍有余量。", "source_ids": ["ev_video_001"], "confidence": 0.96}
-      ],
-      "risks": [
-        {"id": "risk_001", "claim": "首批个别样本可能出现做工与按键一致性问题。", "source_ids": ["ev_risk_001"], "confidence": 0.4}
-      ],
-      "uncertain": [],
-      "confidence": 0.95
+      "evidence_ids": {
+        "support": ["ev_video_001", "ev_video_002", "ev_ecommerce_001"],
+        "risk": ["ev_risk_001"],
+        "uncertain": []
+      },
+      "is_mock": true,
+      "source_type": "demo_mock"
+    },
+    {
+      "result_id": "res_002",
+      "video_id": "demo_video_001",
+      "product_id": "vxe_r1_pro",
+      "category_id": "gaming_mouse",
+      "recommendation": {
+        "match_score": 0.82,
+        "summary": "VXE 蜻蜓 R1 Pro 以 48g 极致轻量和三模连接，在 200 元以下价位段提供了旗舰级核心性能，是预算敏感玩家的首选平替。",
+        "match_tags": [
+          "48g 极致轻量",
+          "PAW3395 传感器",
+          "三模连接",
+          "Nordic 主控",
+          "120.6mm 中小手适配"
+        ]
+      },
+      "evidence_ids": {
+        "support": [],
+        "risk": [],
+        "uncertain": ["ev_pending_vxe_r1_pro"]
+      },
+      "is_mock": true,
+      "source_type": "demo_mock"
+    },
+    {
+      "result_id": "res_003",
+      "video_id": "demo_video_001",
+      "product_id": "edifier_g3m_pro",
+      "category_id": "gaming_mouse",
+      "recommendation": {
+        "match_score": 0.79,
+        "summary": "漫步者 G3M Pro 独家物理双微动切换功能，可在清脆竞技和静音办公间一键切换，是宿舍和深夜使用的唯一差异化选择。",
+        "match_tags": [
+          "物理双微动切换",
+          "竞技/静音一键切换",
+          "PAW3395 传感器",
+          "三模连接",
+          "63g 轻量化"
+        ]
+      },
+      "evidence_ids": {
+        "support": [],
+        "risk": [],
+        "uncertain": ["ev_pending_edifier_g3m_pro"]
+      },
+      "is_mock": true,
+      "source_type": "demo_mock"
+    },
+    {
+      "result_id": "res_004",
+      "video_id": "demo_video_001",
+      "product_id": "logitech_gpw_1",
+      "category_id": "gaming_mouse",
+      "recommendation": {
+        "match_score": 0.85,
+        "summary": "罗技 GPW 一代拥有经过职业赛场多年验证的 LIGHTSPEED 无线技术和经典对称模具，80g 重量在手感稳定性和舒适度上表现突出，适合追求成熟方案的玩家。",
+        "match_tags": [
+          "LIGHTSPEED 无线技术",
+          "HERO 25K 传感器",
+          "经典对称万金油模具",
+          "80g 稳定手感",
+          "左右手可拆卸侧键"
+        ]
+      },
+      "evidence_ids": {
+        "support": [],
+        "risk": [],
+        "uncertain": ["ev_pending_logitech_gpw_1"]
+      },
+      "is_mock": true,
+      "source_type": "demo_mock"
+    },
+    {
+      "result_id": "res_005",
+      "video_id": "demo_video_001",
+      "product_id": "razer_viper_v3_pro",
+      "category_id": "gaming_mouse",
+      "recommendation": {
+        "match_score": 0.92,
+        "summary": "雷蛇 毒蝰 V3 Pro 搭载 Focus Pro 35K 传感器与原生无线 8K 轮询率，54g 轻量化配合抗汗涂层，是预算充足硬核 FPS 选手的终极选择。",
+        "match_tags": [
+          "Focus Pro 35K 传感器",
+          "原生无线 8K 轮询率",
+          "54g 极致轻量",
+          "哑光抗汗涂层",
+          "职业选手主力装备"
+        ]
+      },
+      "evidence_ids": {
+        "support": [],
+        "risk": [],
+        "uncertain": ["ev_pending_razer_viper_v3_pro"]
+      },
+      "is_mock": true,
+      "source_type": "demo_mock"
+    },
+    {
+      "result_id": "res_006",
+      "video_id": "demo_video_001",
+      "product_id": "logitech_gpx_2",
+      "category_id": "gaming_mouse",
+      "recommendation": {
+        "match_score": 0.90,
+        "summary": "罗技 GPW 二代在保留经典万金油模具的基础上将重量压至 63g，结合 HERO 25K 超低功耗和 G HUB 完整软件生态，是追求原厂品质与轻量化的高端选择。",
+        "match_tags": [
+          "HERO 25K 超低功耗",
+          "63g 原厂轻量化",
+          "G HUB 软件生态",
+          "全球职业选手首选",
+          "2年大厂质保"
+        ]
+      },
+      "evidence_ids": {
+        "support": [],
+        "risk": [],
+        "uncertain": ["ev_pending_logitech_gpx_2"]
+      },
+      "is_mock": true,
+      "source_type": "demo_mock"
+    },
+    {
+      "result_id": "res_007",
+      "video_id": "demo_video_001",
+      "product_id": "zowie_fk2_dw",
+      "category_id": "gaming_mouse",
+      "recommendation": {
+        "match_score": 0.86,
+        "summary": "卓威 FK2-DW 经典低背对称设计配合专属增强接收基站，完全免驱即插即用，是所有设置由物理按键控制的纯粹电竞利器，适合线下赛事环境。",
+        "match_tags": [
+          "经典低背对称 FK 系列",
+          "专属增强接收基站",
+          "完全免驱即插即用",
+          "物理按键全调节",
+          "线下赛事抗干扰设计"
+        ]
+      },
+      "evidence_ids": {
+        "support": [],
+        "risk": [],
+        "uncertain": ["ev_pending_zowie_fk2_dw"]
+      },
+      "is_mock": true,
+      "source_type": "demo_mock"
     }
   ]
 }
