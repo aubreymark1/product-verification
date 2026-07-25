@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import {
   BadgeCheck,
   ChevronDown,
@@ -20,26 +20,70 @@ import {
 import { useRouter } from 'vue-router'
 
 import { useSessionStore } from '../../app/store/session'
-import { priceChannels, type PriceChannel } from '../../mock/priceComparisonData'
+import { api } from '../../services/api'
 
 const router = useRouter()
 const session = useSessionStore()
 
-if (session.priceChannels.length === 0) {
-  session.priceChannels = priceChannels
+interface DisplayChannel {
+  id: string
+  name: string
+  tag: string
+  score: string
+  price: string
+  originalPrice: string
+  offer: string
+  shipping: string[]
+  arrival: string
+  warranty: string
+  stars: number
+  sales: string
+  accent: string
 }
 
-const channels = computed(() => session.priceChannels)
+const channels = ref<DisplayChannel[]>([])
+
+async function loadChannels() {
+  const productId = session.selectedProduct?.product_id
+  if (!productId) {
+    channels.value = []
+    return
+  }
+  try {
+    const result = await api.getPurchaseChannels(productId)
+    channels.value = result.map((channel, index) => ({
+      id: channel.channel_id,
+      name: channel.channel_name,
+      tag: channel.note,
+      score: '待评估',
+      price: '待确认',
+      originalPrice: '',
+      offer: channel.availability === 'available' ? '可购买' : '待确认',
+      shipping: [channel.note || '配送信息待确认'],
+      arrival: '待确认',
+      warranty: '以渠道说明为准',
+      stars: 0,
+      sales: '—',
+      accent: index === 0 ? 'purple' : 'blue',
+    }))
+  } catch (error) {
+    channels.value = []
+    console.warn('比价渠道加载失败', error)
+  }
+}
+
+onMounted(() => { void loadChannels() })
+watch(() => session.selectedProduct?.product_id, () => { void loadChannels() })
 const lowestChannel = computed(() => channels.value[0] ?? null)
 const selectedProduct = computed(
   () => session.selectedPriceProduct || session.selectedRecommendation || session.selectedProduct,
 )
-const productName = computed(() => selectedProduct.value?.product_name || '轻量化电竞鼠标 Pro')
-const selectedChannel = ref<PriceChannel | null>(null)
+const productName = computed(() => selectedProduct.value?.product_name || '待识别商品')
+const selectedChannel = ref<DisplayChannel | null>(null)
 const showPurchaseConfirm = ref(false)
 const purchaseTriggered = ref(false)
 
-function openPurchase(channel: PriceChannel | null) {
+function openPurchase(channel: DisplayChannel | null) {
   if (!channel) return
 
   selectedChannel.value = channel

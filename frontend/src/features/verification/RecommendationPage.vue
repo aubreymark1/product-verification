@@ -4,16 +4,44 @@ import { ChevronLeft, ChevronRight, CircleCheck, Share2, Sparkles, Target } from
 import { useRouter } from 'vue-router'
 
 import { useSessionStore } from '../../app/store/session'
-import { recommendationProducts, type RecommendationProduct } from '../../mock/recommendationData'
 
 const router = useRouter()
 const session = useSessionStore()
 
-if (session.recommendationProducts.length === 0) {
-  session.recommendationProducts = recommendationProducts
+interface DisplayRecommendation {
+  product_id: string
+  product_name: string
+  image_url: string | null
+  product_tag: string
+  score: number
+  reason: string
+  description: string
+  evidence: string[]
+  source: string
+  price: string
+  rank: number
 }
 
-const recommendations = computed(() => session.recommendationProducts)
+const recommendations = computed<DisplayRecommendation[]>(() => {
+  const result = session.verificationResult
+  const product = result?.product || session.selectedProduct
+  if (!product) return []
+  const evidence = [...(result?.support ?? []), ...(result?.risks ?? [])]
+  const sourceIds = evidence.flatMap((item) => item.source_ids)
+  return [{
+    product_id: product.product_id,
+    product_name: product.product_name,
+    image_url: product.image_url,
+    product_tag: session.identifyResult?.category_name || '商品',
+    score: Math.round((result?.recommendation_score ?? product.confidence) * 100),
+    reason: result?.summary || '基于当前识别结果与需求进行评估',
+    description: result?.change_summary || '暂无额外说明',
+    evidence: evidence.map((item) => item.claim),
+    source: sourceIds.length ? sourceIds.join(', ') : '暂无可信来源',
+    price: '待确认',
+    rank: 1,
+  }]
+})
 
 const requirementText = computed(() => {
   const conditions = Object.keys(session.inheritedConditions).length > 0
@@ -23,9 +51,9 @@ const requirementText = computed(() => {
   return values.filter((value) => value !== undefined && value !== null && value !== '').slice(0, 4)
 })
 
-function selectRecommendation(product: RecommendationProduct) {
-  session.selectedRecommendation = product
-  session.setSelectedPriceProduct(product)
+function selectRecommendation(product: DisplayRecommendation) {
+  const selected = session.verificationResult?.product || session.selectedProduct
+  if (selected) session.setSelectedPriceProduct(selected)
   router.push('/price-comparison')
 }
 </script>

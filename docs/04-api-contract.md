@@ -22,6 +22,10 @@
 
 返回演示视频元数据：`video_id`、`title`、`video_url`、`duration`、`objects[]`。对象包含 `object_id`、`category_id`、`label`、`bbox`；`bbox` 使用 0—1 的归一化 `x`、`y`、`width`、`height`。
 
+### `POST /api/videos/upload`
+
+以 multipart 字段 `file` 上传视频，返回同样的 `Video` 元数据和临时 `video_id`。支持 `mp4`、`webm`、`mov`、`m4v`、`avi`，文件默认上限 200 MB。上传本身不推断商品、品类或证据；视觉识别服务可用时，再通过 `/api/vision/identify` 获取候选商品。
+
 ### `POST /api/vision/identify`
 
 输入：

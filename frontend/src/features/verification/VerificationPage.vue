@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   BarChart3,
@@ -23,7 +23,7 @@ import VerificationSummary from './VerificationSummary.vue'
 import { useSessionStore } from '../../app/store/session'
 import { api } from '../../services/api'
 import {
-  mockEvidenceGroups,
+  type EvidenceGroup,
   type EvidenceItem,
 } from '../../mock/evidenceData'
 
@@ -36,9 +36,38 @@ const error = ref('')
  * 默认显示第一条风险证据的来源详情。
  * 如果 Mock 数据为空，则安全回退为 null。
  */
-const selectedEvidence = ref<EvidenceItem | null>(
-  mockEvidenceGroups.find((group) => group.type === 'risk')?.items[0] ?? null,
-)
+const evidenceGroups = computed<EvidenceGroup[]>(() => {
+  const result = session.verificationResult
+  if (!result) return []
+
+  const toGroup = (
+    type: EvidenceGroup['type'],
+    title: string,
+    conclusions: typeof result.support,
+  ): EvidenceGroup => ({
+    type,
+    title,
+    items: conclusions.map((conclusion) => ({
+      id: conclusion.id,
+      title: conclusion.claim,
+      summary: conclusion.claim,
+      source: {
+        platform: '后端证据链',
+        author: '系统检索结果',
+        quote: conclusion.claim,
+        sourceLabel: conclusion.source_ids.length ? conclusion.source_ids.join(', ') : '无来源',
+      },
+    })),
+  })
+
+  return [
+    toGroup('risk', '风险证据', result.risks),
+    toGroup('support', '支持证据', result.support),
+    toGroup('pending', '待确认项', result.uncertain),
+  ]
+})
+
+const selectedEvidence = ref<EvidenceItem | null>(null)
 
 /**
  * 点击证据条目后，切换下方的来源详情。
@@ -111,7 +140,7 @@ async function addComparison() {
       <!-- 推荐度与商品信息 -->
       <div class="top-hero-row">
         <RecommendationGauge
-          :score="session.verificationResult.confidence"
+          :score="session.verificationResult.recommendation_score"
           :summary="session.verificationResult.summary"
           class="hero-gauge"
         />
@@ -150,7 +179,7 @@ async function addComparison() {
         <EvidenceSearchHeading />
 
         <EvidenceSection
-          v-for="group in mockEvidenceGroups"
+          v-for="group in evidenceGroups"
           :key="group.type"
           :group="group"
           :default-expanded="true"

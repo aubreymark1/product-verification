@@ -16,6 +16,11 @@ async function unwrap<T>(request: Promise<{ data: ApiResponse<T> }>): Promise<T>
 }
 
 export const api = {
+  uploadVideo: (file: File) => {
+    const body = new FormData()
+    body.append('file', file)
+    return unwrap<Video>(client.post('/videos/upload', body))
+  },
   getVideo: (videoId: string) => unwrap<Video>(client.get(`/videos/${videoId}`)),
   identify: (videoId: string, timestamp: number, selection: BBox) => unwrap<IdentifyResult>(client.post('/vision/identify', { video_id: videoId, timestamp, selection })),
   getProfile: (categoryId: string) => unwrap<CategoryProfile>(client.get(`/categories/${categoryId}/profile`)),

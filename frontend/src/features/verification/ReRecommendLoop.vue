@@ -2,7 +2,6 @@
 import { onUnmounted, ref } from 'vue'
 import { ChevronRight, RotateCcw, ShieldCheck } from 'lucide-vue-next'
 import { useSessionStore } from '../../app/store/session'
-import { recommendationProducts } from '../../mock/recommendationData'
 
 const emit = defineEmits<{
   click: []
@@ -24,13 +23,7 @@ function startRecommendation() {
   if (isAnalyzing.value) return
   isAnalyzing.value = true
   analysisStep.value = 0
-  session.inheritedConditions = {
-    budgetMax: 300,
-    primaryUsage: 'FPS',
-    connection: 'wireless',
-    preferences: ['lightweight', 'low_latency'],
-  }
-  session.recommendationProducts = recommendationProducts
+  session.inheritedConditions = session.verificationResult?.conditions ?? {}
 
   analysisTimer = window.setInterval(() => {
     if (analysisStep.value < analysisSteps.length - 1) analysisStep.value += 1

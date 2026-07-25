@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import {
   ChevronRight,
   CircleUserRound,
@@ -29,13 +29,14 @@ import ReRecommendLoop from '../verification/ReRecommendLoop.vue'
 
 import { useSessionStore } from '../../app/store/session'
 import { api } from '../../services/api'
-import type { Evidence, VerificationResult } from '../../types/api'
+import type { BBox, CandidateProduct, Evidence, IdentifyResult, VerificationResult } from '../../types/api'
 
 const router = useRouter()
 const session = useSessionStore()
 
-const videoSrc = '/assets/mock/videos/main_demo.mp4'
+const videoSrc = ref('/assets/mock/videos/main_demo.mp4')
 const videoRef = ref<HTMLVideoElement | null>(null)
+const fileInput = ref<HTMLInputElement | null>(null)
 const isPaused = ref(false)
 
 // Drawer state (1: Target Confirmation, 2: Requirements Input, 3: AI Analysis, 4: Results)
@@ -44,7 +45,10 @@ const drawerStep = ref(1)
 const isAddingNewRequirement = ref(false)
 
 // Selected product candidate state
-const selectedCandidateId = ref('atk_a9_ultimate')
+const selectedCandidateId = ref('')
+const identifyResult = ref<IdentifyResult | null>(null)
+const candidates = computed(() => identifyResult.value?.candidates ?? [])
+const selectedCandidate = computed(() => candidates.value.find((item) => item.product_id === selectedCandidateId.value) ?? null)
 const rawQueryText = ref('')
 const isRecording = ref(false)
 
@@ -62,14 +66,7 @@ const verificationResult = ref<VerificationResult | null>(null)
 const selectedEvidence = ref<Evidence | null>(null)
 
 onMounted(() => {
-  session.videoId = 'demo_video_001'
-  session.categoryId = 'gaming_mouse'
-  session.setProduct({
-    product_id: 'atk_a9_ultimate',
-    product_name: '轻量化无线游戏鼠标 G Pro',
-    confidence: 0.98,
-    image_url: '/assets/mock/products/62e1042760e7bac7a95e2a27a8bfde1e.png',
-  })
+  void loadVideo(session.videoId)
 })
 
 onUnmounted(() => {
@@ -91,6 +88,58 @@ function handlePlay() {
 
 function handlePause() {
   isPaused.value = true
+}
+
+async function loadVideo(videoId: string) {
+  try {
+    const video = await api.getVideo(videoId)
+    videoSrc.value = video.video_url ?? '/assets/mock/videos/main_demo.mp4'
+    const object = video.objects[0]
+    if (object) await identifyObject(videoId, object.bbox)
+  } catch (error) {
+    console.warn('视频元数据加载失败，保留当前演示画面', error)
+  }
+}
+
+async function identifyObject(videoId: string, selection: BBox) {
+  try {
+    const result = await api.identify(videoId, 0, selection)
+    identifyResult.value = result
+    session.setIdentification(result)
+    if (result.candidates[0]) selectCandidate(result.candidates[0])
+  } catch (error) {
+    identifyResult.value = null
+    session.setIdentification({ category_id: '', category_name: '', visual_attributes: {}, candidates: [] })
+    console.warn('视频对象识别失败，等待用户重新选择或上传视频', error)
+  }
+}
+
+function selectCandidate(candidate: CandidateProduct) {
+  selectedCandidateId.value = candidate.product_id
+  session.setProduct(candidate)
+}
+
+function openUploadPicker() {
+  fileInput.value?.click()
+}
+
+async function handleUpload(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+  try {
+    const video = await api.uploadVideo(file)
+    session.videoId = video.video_id
+    session.categoryId = ''
+    session.setProduct({ product_id: '', product_name: '', confidence: 0, image_url: null })
+    videoSrc.value = video.video_url ?? URL.createObjectURL(file)
+    identifyResult.value = null
+    if (video.objects[0]) await identifyObject(video.video_id, video.objects[0].bbox)
+  } catch (error) {
+    console.error('视频上传失败', error)
+  } finally {
+    input.value = ''
+  }
 }
 
 function openVerificationDrawer() {
@@ -156,7 +205,7 @@ async function startAiAnalysis() {
     const res = await api.runVerification({
       video_id: session.videoId,
       product_id: selectedCandidateId.value,
-      category_id: 'gaming_mouse',
+      category_id: session.categoryId,
       conditions: {
         budget: selectedBudget.value,
         connection: selectedConnection.value,
@@ -253,7 +302,7 @@ async function openEvidenceDetail(id: string) {
         <div v-if="isPaused" class="target-bounding-overlay" @click.stop="openVerificationDrawer">
           <div class="clean-target-ring">
             <span class="target-dot"></span>
-            <span class="target-name">无线游戏鼠标</span>
+            <span class="target-name">{{ identifyResult?.category_name || '待识别商品' }}</span>
           </div>
         </div>
 
@@ -307,7 +356,7 @@ async function openEvidenceDetail(id: string) {
         <div class="tiktok-bottom-nav" @click.stop>
           <span class="bottom-nav-item active"><House class="bottom-nav-icon" :size="19" :stroke-width="2" />首页</span>
           <span class="bottom-nav-item"><UserRound class="bottom-nav-icon" :size="19" :stroke-width="1.9" />朋友</span>
-          <span class="plus-btn" aria-label="发布"><Plus :size="24" :stroke-width="2.2" /></span>
+          <button class="plus-btn" type="button" aria-label="上传视频" @click="openUploadPicker"><Plus :size="24" :stroke-width="2.2" /></button>
           <span class="bottom-nav-item"><MessageCircle class="bottom-nav-icon" :size="19" :stroke-width="1.9" />消息</span>
           <span class="bottom-nav-item"><UserRound class="bottom-nav-icon" :size="19" :stroke-width="1.9" />我</span>
         </div>
@@ -324,35 +373,25 @@ async function openEvidenceDetail(id: string) {
           <div class="section-subtitle">根据视频内容自动匹配候选目标:</div>
 
           <div class="candidate-cards-list">
-            <div
-              class="cand-card-item"
-              :class="{ selected: selectedCandidateId === 'atk_a9_ultimate' }"
-              @click="selectedCandidateId = 'atk_a9_ultimate'"
-            >
-              <div class="card-left-img"></div>
-              <div class="card-right-info">
-                <div class="info-top-row">
-                  <span class="product-title-text">轻量化无线游戏鼠标 G Pro</span>
-                  <span class="confidence-badge">置信度 92%</span>
+            <template v-if="candidates.length">
+              <div
+                v-for="candidate in candidates"
+                :key="candidate.product_id"
+                class="cand-card-item"
+                :class="{ selected: selectedCandidateId === candidate.product_id }"
+                @click="selectCandidate(candidate)"
+              >
+                <div class="card-left-img"></div>
+                <div class="card-right-info">
+                  <div class="info-top-row">
+                    <span class="product-title-text">{{ candidate.product_name }}</span>
+                    <span class="confidence-badge">{{ Math.round(candidate.confidence * 100) }}%</span>
+                  </div>
+                  <div class="product-sub-spec">{{ identifyResult?.category_name || '待识别商品' }}</div>
                 </div>
-                <div class="product-sub-spec">约63g / RGB灯效 / 极低延迟</div>
               </div>
-            </div>
-
-            <div
-              class="cand-card-item"
-              :class="{ selected: selectedCandidateId === 'razer_viper_v3_pro' }"
-              @click="selectedCandidateId = 'razer_viper_v3_pro'"
-            >
-              <div class="card-left-img"></div>
-              <div class="card-right-info">
-                <div class="info-top-row">
-                  <span class="product-title-text">双模无线电竞鼠标</span>
-                  <span class="confidence-badge">置信度 78%</span>
-                </div>
-                <div class="product-sub-spec">长续航 / 可编程侧键</div>
-              </div>
-            </div>
+            </template>
+            <div v-else class="product-sub-spec">暂无可确认候选商品</div>
           </div>
 
           <button class="restrained-primary-btn" @click="confirmProductStep">
@@ -367,7 +406,7 @@ async function openEvidenceDetail(id: string) {
             <div class="product-thumb"></div>
             <div class="product-meta">
               <span class="meta-label">已识别商品</span>
-              <span class="meta-title">轻量化无线游戏鼠标 G Pro</span>
+              <span class="meta-title">{{ selectedCandidate?.product_name || '等待识别商品' }}</span>
             </div>
           </div>
 
@@ -439,7 +478,7 @@ async function openEvidenceDetail(id: string) {
           <div class="top-hero-block">
             <div class="top-hero-row">
               <RecommendationGauge :score="verificationResult?.recommendation_score || 0.82" />
-              <ProductHeroCard :product="verificationResult?.product || session.selectedProduct" categoryName="鼠标/电竞游戏鼠标" />
+              <ProductHeroCard :product="verificationResult?.product || session.selectedProduct" :category-name="identifyResult?.category_name || ''" />
             </div>
 
             <div class="summary-single-line">
@@ -470,6 +509,7 @@ async function openEvidenceDetail(id: string) {
         </div>
       </BottomDrawer>
 
+      <input ref="fileInput" type="file" accept="video/*" hidden @change="handleUpload" />
       <EvidenceDetailModal :evidence="selectedEvidence" @close="selectedEvidence = null" />
     </div>
   </div>

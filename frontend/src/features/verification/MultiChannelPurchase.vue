@@ -1,22 +1,49 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { ChevronRight, ShoppingCart, X } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
+import { useSessionStore } from '../../app/store/session'
+import { api } from '../../services/api'
 
 const router = useRouter()
+const session = useSessionStore()
 const showChannelsModal = ref(false)
 
 const emit = defineEmits<{
   navigate: []
 }>()
 
-const channels = [
-  { platform: '天猫旗舰店', price: '￥329', tag: '券后秒杀' },
-  { platform: '京东自营', price: '￥339', tag: '百亿补贴' },
-  { platform: '抖音电商', price: '￥319', tag: '直播专享低价' },
-  { platform: '拼多多官方', price: '￥299', tag: '多人拼团' },
-]
+interface DisplayChannel {
+  platform: string
+  price: string
+  tag: string
+}
 
+const channels = ref<DisplayChannel[]>([])
+
+async function loadChannels() {
+  const productId = session.selectedProduct?.product_id
+  if (!productId) {
+    channels.value = []
+    return
+  }
+
+  try {
+    const result = await api.getPurchaseChannels(productId)
+    channels.value = result.map((channel) => ({
+      platform: channel.channel_name,
+      price: "待确认",
+      tag: channel.availability === "available" ? "可购买" : channel.note || "待确认",
+    }))
+  } catch (error) {
+    channels.value = []
+    console.warn("闁荤姵鍔﹂崢娲箯閸楃偑鈧帡鎮╃拋鍐差棜闂佸憡姊绘慨鎯归崶銊ョ窞閺夊牜鍋夎", error)
+  }
+}
+
+
+onMounted(() => { void loadChannels() })
+watch(() => session.selectedProduct?.product_id, () => { void loadChannels() })
 function openModal() {
   emit('navigate')
   router.push('/price-comparison')
@@ -48,7 +75,7 @@ function closeModal() {
         <div class="platform-badges-row">
           <span class="app-icon app-icon--tmall" aria-label="天猫"></span>
           <span class="app-icon app-icon--jd" aria-label="京东"></span>
-          <span class="summary-text">12源比价</span>
+          <span class="summary-text">{{ channels.length }}源比价</span>
           <span class="app-icon app-icon--douyin" aria-label="抖音"></span>
           <span class="app-icon app-icon--pdd" aria-label="拼多多"></span>
         </div>
@@ -60,8 +87,8 @@ function closeModal() {
       <div class="channel-modal">
         <div class="modal-header">
           <div>
-            <h3>全网比价汇总 (12个渠道)</h3>
-            <span class="demo-tag">演示数据，仅用于功能展示</span>
+            <h3>全网比价汇总（{{ channels.length }}个渠道）</h3>
+            <span class="demo-tag">已配置渠道数据</span>
           </div>
           <button class="close-btn" aria-label="关闭" @click="closeModal">
             <X :size="18" :stroke-width="1.8" />
