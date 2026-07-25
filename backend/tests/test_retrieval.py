@@ -24,7 +24,6 @@ class TestProductFacts:
 
     def test_search_facts_filter_by_key(self) -> None:
         """按 key 筛选事实"""
-        # demo_category 中可能没有 product-facts，但筛选不应报错
         result = service.search_facts("demo_product_001", "demo_category", keys=["price"])
         assert isinstance(result["facts"], list)
 

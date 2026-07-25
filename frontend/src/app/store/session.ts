@@ -4,7 +4,7 @@ import { defineStore } from 'pinia'
 import type { CandidateProduct, IdentifyResult, VerificationResult } from '../../types/api'
 
 export const useSessionStore = defineStore('session', () => {
-  const videoId = ref('video_demo')
+  const videoId = ref('demo_video_001')
   const categoryId = ref('')
   const selectedProduct = ref<CandidateProduct | null>(null)
   const identifyResult = ref<IdentifyResult | null>(null)

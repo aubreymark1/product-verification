@@ -3,72 +3,233 @@ import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import StatusMessage from '../../components/common/StatusMessage.vue'
+import DynamicForm from '../../components/dynamic-form/DynamicForm.vue'
+import VoiceTextInput, { type StructuredRequirements } from '../../components/dynamic-form/VoiceTextInput.vue'
+import AiAnalysisLoading from '../verification/AiAnalysisLoading.vue'
 import { useSessionStore } from '../../app/store/session'
 import { api } from '../../services/api'
-import type { CategoryProfile, ConditionField } from '../../types/api'
+import type { CategoryProfile } from '../../types/api'
 
 const router = useRouter()
 const session = useSessionStore()
 const profile = ref<CategoryProfile | null>(null)
-const form = reactive<Record<string, unknown>>({})
+const formData = reactive<Record<string, unknown>>({})
+const rawQuery = ref('')
 const loading = ref(true)
 const submitting = ref(false)
 const error = ref('')
 
-function setStringField(key: string, event: Event) {
-  form[key] = (event.target as HTMLInputElement).value
-}
-
-function setNumberField(key: string, event: Event) {
-  const value = (event.target as HTMLInputElement).value
-  form[key] = value === '' ? undefined : Number(value)
-}
-
-function setBooleanField(key: string, event: Event) {
-  form[key] = (event.target as HTMLInputElement).checked
-}
-
-function stringValue(key: string): string {
-  return typeof form[key] === 'string' ? form[key] as string : ''
-}
-
-function numberValue(key: string): string | number {
-  return typeof form[key] === 'number' || typeof form[key] === 'string' ? form[key] as string | number : ''
-}
-
 onMounted(async () => {
-  if (!session.hasProduct) { error.value = '请先在视频页确认商品'; loading.value = false; return }
-  try { profile.value = await api.getProfile(session.categoryId) } catch (err) { error.value = err instanceof Error ? err.message : '品类配置加载失败' } finally { loading.value = false }
+  // Fallback product set if user accessed /conditions directly
+  if (!session.hasProduct) {
+    session.videoId = 'demo_video_001'
+    session.categoryId = 'gaming_mouse'
+    session.setProduct({
+      product_id: 'atk_a9_ultimate',
+      product_name: '轻量化电竞鼠标 G Pro',
+      confidence: 0.98,
+      image_url: '/assets/mock/products/62e1042760e7bac7a95e2a27a8bfde1e.png',
+    })
+  }
+
+  try {
+    profile.value = await api.getProfile(session.categoryId || 'gaming_mouse')
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : '品类配置加载失败'
+  } finally {
+    loading.value = false
+  }
 })
 
-function toggleMulti(field: ConditionField, option: string) {
-  const current = Array.isArray(form[field.key]) ? [...form[field.key] as string[]] : []
-  form[field.key] = current.includes(option) ? current.filter((item) => item !== option) : [...current, option]
+function handleStructuredChange(structured: StructuredRequirements) {
+  if (structured.budgetMax !== undefined) formData.budget = structured.budgetMax
+  if (structured.primaryUsage !== undefined) formData.game_type = structured.primaryUsage
+  if (structured.connection !== undefined) formData.wireless = structured.connection === 'wireless'
+  if (structured.preferences !== undefined) formData.features = structured.preferences
 }
 
 async function submit() {
   if (!session.selectedProduct || !profile.value) return
   submitting.value = true
   error.value = ''
+
   try {
-    const result = await api.runVerification({ video_id: session.videoId, product_id: session.selectedProduct.product_id, category_id: profile.value.category_id, conditions: { ...form }, raw_query: '' })
+    // 1.5s transition delay for AI Loading Animation
+    const [result] = await Promise.all([
+      api.runVerification({
+        video_id: session.videoId,
+        product_id: session.selectedProduct.product_id,
+        category_id: profile.value.category_id,
+        conditions: { ...formData },
+        raw_query: rawQuery.value,
+      }),
+      new Promise((resolve) => setTimeout(resolve, 1500)),
+    ])
     session.setVerificationResult(result)
     await router.push(`/verification/${result.result_id}`)
-  } catch (err) { error.value = err instanceof Error ? err.message : '验真请求失败' } finally { submitting.value = false }
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : '验真请求失败'
+  } finally {
+    submitting.value = false
+  }
 }
 </script>
 
 <template>
-  <section><div class="page-header"><p class="card-kicker">第二步 · 动态条件</p><h1>告诉我们你的使用条件</h1><p v-if="session.selectedProduct">当前候选：{{ session.selectedProduct.product_name }}</p></div>
-    <StatusMessage v-if="loading" type="loading" message="正在读取品类配置…" /><StatusMessage v-else-if="error && !profile" type="error" :message="error" />
-    <form v-else-if="profile" class="panel" @submit.prevent="submit"><p class="card-kicker">字段由“{{ profile.category_name }}”的品类配置驱动。</p>
-      <div v-for="field in profile.condition_fields" :key="field.key" class="form-field"><label :for="field.key">{{ field.label }}<span v-if="field.required"> *</span></label>
-        <select v-if="field.type === 'single_select'" :id="field.key" :value="stringValue(field.key)" :required="field.required" @change="setStringField(field.key, $event)"><option value="">请选择</option><option v-for="option in field.options" :key="option" :value="option">{{ option }}</option></select>
-        <div v-else-if="field.type === 'multi_select'" class="choice-list"><label v-for="option in field.options" :key="option"><input type="checkbox" :checked="Array.isArray(form[field.key]) && (form[field.key] as string[]).includes(option)" @change="toggleMulti(field, option)" /> {{ option }}</label></div>
-        <input v-else-if="field.type === 'number'" :id="field.key" :value="numberValue(field.key)" type="number" :min="field.min ?? undefined" :max="field.max ?? undefined" :required="field.required" @input="setNumberField(field.key, $event)" />
-        <textarea v-else-if="field.type === 'text'" :id="field.key" :value="stringValue(field.key)" rows="3" :required="field.required" @input="setStringField(field.key, $event)" />
-        <input v-else :id="field.key" :checked="form[field.key] === true" type="checkbox" :required="field.required" @change="setBooleanField(field.key, $event)" />
-      </div><StatusMessage v-if="error" type="error" :message="error" /><button class="primary-button" type="submit" :disabled="submitting">{{ submitting ? '分析中…' : '提交并开始验真' }}</button>
-    </form>
+  <section class="conditions-page-shell">
+    <div class="page-header">
+      <div class="header-badge">STEP 02 · 动态条件配置</div>
+      <h1 class="page-title">个性化使用需求</h1>
+      <p v-if="session.selectedProduct" class="product-subtitle">
+        已选目标商品：<span class="highlight-product">{{ session.selectedProduct.product_name }}</span>
+      </p>
+    </div>
+
+    <!-- AI Loading overlay during submit -->
+    <AiAnalysisLoading v-if="submitting" />
+
+    <!-- Form Content -->
+    <template v-else>
+      <StatusMessage v-if="loading" type="loading" message="正在读取品类配置与条件规则…" />
+      <StatusMessage v-else-if="error && !profile" type="error" :message="error" />
+
+      <form v-else-if="profile" class="form-glass-card" @submit.prevent="submit">
+        <div class="category-meta-bar">
+          <span class="meta-tag">🏷️ {{ profile.category_name }} 品类表单</span>
+          <span class="meta-desc">字段由后端动态 CategoryProfile 驱动</span>
+        </div>
+
+        <!-- Dynamic Form Fields -->
+        <DynamicForm :fields="profile.condition_fields" v-model="formData" />
+
+        <div class="divider"></div>
+
+        <!-- Voice & Text Simulated Input -->
+        <VoiceTextInput
+          v-model="rawQuery"
+          @structured-change="handleStructuredChange"
+          @confirm="submit"
+        />
+
+        <StatusMessage v-if="error" type="error" :message="error" />
+
+        <!-- Submit Button -->
+        <div class="submit-row">
+          <button class="gradient-submit-btn" type="submit" :disabled="submitting">
+            <span class="btn-text">🚀 提交并开始 AI 深度验真</span>
+          </button>
+        </div>
+      </form>
+    </template>
   </section>
 </template>
+
+<style scoped>
+.conditions-page-shell {
+  max-width: 680px;
+  margin: 0 auto;
+  overflow-x: hidden;
+}
+
+.page-header {
+  margin-bottom: 20px;
+}
+
+.header-badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-bottom: 10px;
+}
+
+.page-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: #f8fafc;
+  margin: 0 0 6px;
+}
+
+.product-subtitle {
+  color: #94a3b8;
+  font-size: 14px;
+  margin: 0;
+}
+
+.highlight-product {
+  color: #38bdf8;
+  font-weight: 600;
+}
+
+.form-glass-card {
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  box-sizing: border-box;
+}
+
+.category-meta-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(30, 41, 59, 0.5);
+  padding: 10px 14px;
+  border-radius: 12px;
+  border-left: 3px solid #06b6d4;
+}
+
+.meta-tag {
+  font-size: 13px;
+  font-weight: 700;
+  color: #06b6d4;
+}
+
+.meta-desc {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 4px 0;
+}
+
+.submit-row {
+  margin-top: 6px;
+}
+
+.gradient-submit-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #2563eb, #06b6d4);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 8px 24px rgba(6, 182, 212, 0.3);
+}
+
+.gradient-submit-btn:hover {
+  opacity: 0.95;
+  transform: translateY(-1px);
+}
+
+.gradient-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+</style>

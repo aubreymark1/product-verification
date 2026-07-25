@@ -1,16 +1,21 @@
 {
   "items": [
     {
-      "video_id": "video_demo",
-      "title": "演示视频：通用商品验真",
-      "video_url": null,
-      "duration": 30,
+      "video_id": "demo_video_001",
+      "title": "ATK A9 大师版 种草演示视频",
+      "video_url": "/assets/mock/videos/main_demo.mp4",
+      "duration": 60.0,
       "objects": [
         {
-          "object_id": "object_demo_001",
-          "category_id": "demo_category",
-          "label": "示例商品",
-          "bbox": {"x": 0.22, "y": 0.25, "width": 0.38, "height": 0.34}
+          "object_id": "obj_001",
+          "category_id": "gaming_mouse",
+          "label": "ATK A9 大师版",
+          "bbox": {
+            "x": 0.45,
+            "y": 0.55,
+            "width": 0.1,
+            "height": 0.15
+          }
         }
       ]
     }

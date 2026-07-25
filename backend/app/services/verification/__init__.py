@@ -67,5 +67,5 @@ def build_fallback_verification(
         support=support,
         risks=risks,
         uncertain=uncertain,
-        confidence=0.7 if support else 0.5,
+        recommendation_score=0.7 if support else 0.5,
     )

@@ -90,24 +90,62 @@ class VerificationRequest(BaseModel):
     category_id: str
     conditions: dict[str, Any] = Field(default_factory=dict)
     raw_query: str = ""
+    input_mode: Literal["text", "voice", "mixed"] = "text"
 
 
 class Conclusion(BaseModel):
     id: str
     claim: str
-    source_ids: list[str]
+    source_ids: list[str] = Field(min_length=1)
     confidence: float = Field(ge=0, le=1)
+
+
+class RecommendationDimension(BaseModel):
+    key: str
+    label: str
+    score: float = Field(ge=0, le=1)
+    rationale: str
+    source_ids: list[str] = Field(default_factory=list)
+
+
+class PurchaseChannel(BaseModel):
+    channel_id: str
+    product_id: str
+    channel_name: str
+    channel_type: PurchaseChannelType
+    url: str | None = None
+    availability: Literal["available", "pending", "placeholder"] = "placeholder"
+    note: str = ""
 
 
 class VerificationResult(BaseModel):
     result_id: str
     product: CandidateProduct
     conditions: dict[str, Any]
+    raw_query: str = ""
+    round: int = Field(default=1, ge=1)
+    is_follow_up: bool = False
+    needs_inherited: bool = False
+    recommendation_score: float = Field(default=0, ge=0, le=1)
+    recommendation_basis: list[RecommendationDimension] = Field(default_factory=list)
     summary: str
     support: list[Conclusion]
     risks: list[Conclusion]
     uncertain: list[Conclusion]
-    confidence: float = Field(ge=0, le=1)
+    dissatisfaction_reasons: list[str] = Field(default_factory=list)
+    purchase_channels: list[PurchaseChannel] = Field(default_factory=list)
+
+
+class RerunRecommendationRequest(BaseModel):
+    video_id: str
+    product_id: str
+    category_id: str
+    previous_result_id: str
+    dissatisfaction_reasons: list[str] = Field(default_factory=list)
+    dissatisfaction_note: str = ""
+    inherit_previous_needs: bool = True
+    conditions_patch: dict[str, Any] = Field(default_factory=dict)
+    raw_query: str = ""
 
 
 class Evidence(BaseModel):
@@ -137,18 +175,6 @@ class ComparisonResult(BaseModel):
     product_ids: list[str]
     status: Literal["placeholder"]
     message: str
-
-
-# ── 购买渠道 ───────────────────────────
-
-class PurchaseChannel(BaseModel):
-    channel_id: str
-    product_id: str
-    channel_name: str
-    channel_type: PurchaseChannelType
-    url: str | None = None
-    availability: Literal["available", "pending", "placeholder"] = "placeholder"
-    note: str = ""
 
 
 # ── 商品事实模型（成员C：品类无关，避免写死具体字段）──

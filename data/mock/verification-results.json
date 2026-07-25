@@ -1,26 +1,26 @@
 {
   "items": [
     {
-      "result_id": "result_demo_001",
-      "product_id": "demo_product_001",
-      "product": {"product_id": "demo_product_001", "product_name": "商品A", "confidence": 0.91, "image_url": null},
+      "result_id": "res_001",
+      "product_id": "atk_a9_ultimate",
+      "category_id": "gaming_mouse",
+      "product": {
+        "product_id": "atk_a9_ultimate",
+        "product_name": "ATK A9 Ultimate 大师版",
+        "confidence": 0.98,
+        "image_url": "/assets/mock/products/62e1042760e7bac7a95e2a27a8bfde1e.png"
+      },
       "conditions": {},
-      "summary": "当前演示证据支持进行初步判断，但仍有项目需要确认。",
-      "support": [{"id": "support_demo_001", "claim": "示例商品的身份信息存在演示用支持证据。", "source_ids": ["evidence_demo_support"], "confidence": 0.88}],
-      "risks": [{"id": "risk_demo_001", "claim": "示例商品存在需要持续观察的演示用风险项。", "source_ids": ["evidence_demo_risk"], "confidence": 0.71}],
-      "uncertain": [{"id": "uncertain_demo_001", "claim": "当前证据不足以完成全部身份确认。", "source_ids": ["evidence_demo_uncertain"], "confidence": 0.42}],
-      "confidence": 0.76
-    }
-    ,{
-      "result_id": "result_demo_002",
-      "product_id": "demo_product_002",
-      "product": {"product_id": "demo_product_002", "product_name": "商品B", "confidence": 0.63, "image_url": null},
-      "conditions": {},
-      "summary": "当前演示证据支持进行初步判断，但仍有项目需要确认。",
-      "support": [{"id": "support_demo_002", "claim": "候选商品存在演示用支持证据。", "source_ids": ["evidence_demo_support"], "confidence": 0.62}],
-      "risks": [{"id": "risk_demo_002", "claim": "候选商品存在需要持续观察的演示用风险项。", "source_ids": ["evidence_demo_risk"], "confidence": 0.55}],
-      "uncertain": [{"id": "uncertain_demo_002", "claim": "当前证据不足以完成全部身份确认。", "source_ids": ["evidence_demo_uncertain"], "confidence": 0.42}],
-      "confidence": 0.56
+      "summary": "当前证据显示 ATK A9 大师版具备旗舰级性能和较强续航表现，适合竞技类场景，但首批个别批次仍需关注做工稳定性。",
+      "support": [
+        {"id": "claim_001", "claim": "搭载顶级 PAW3950 传感器，定位精准。", "source_ids": ["ev_video_002"], "confidence": 0.98},
+        {"id": "claim_002", "claim": "续航表现突出，长时间使用仍有余量。", "source_ids": ["ev_video_001"], "confidence": 0.96}
+      ],
+      "risks": [
+        {"id": "risk_001", "claim": "首批个别样本可能出现做工与按键一致性问题。", "source_ids": ["ev_risk_001"], "confidence": 0.4}
+      ],
+      "uncertain": [],
+      "confidence": 0.95
     }
   ]
 }

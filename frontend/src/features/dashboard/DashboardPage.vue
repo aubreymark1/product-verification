@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, type Ref } from 'vue'
 import { api } from '../../services/api'
 
 // ── 状态 ──
-const health = ref<any>(null)
-const video = ref<any>(null)
-const identify = ref<any>(null)
-const profile = ref<any>(null)
-const verification = ref<any>(null)
-const evidence = ref<any>(null)
-const comparison = ref<any>(null)
-const searchResult = ref<any>(null)
+const health = ref<unknown>(null)
+const video = ref<unknown>(null)
+const identify = ref<unknown>(null)
+const profile = ref<unknown>(null)
+const verification = ref<unknown>(null)
+const evidence = ref<unknown>(null)
+const comparison = ref<unknown>(null)
+const searchResult = ref<unknown>(null)
 
 const loading: Record<string, boolean> = {
   health: false, video: false, identify: false, profile: false,
@@ -18,27 +18,27 @@ const loading: Record<string, boolean> = {
 }
 const errors: Record<string, string> = {}
 
-async function call(name: string, fn: () => Promise<any>, target: any) {
+async function call<T>(name: string, fn: () => Promise<T>, target: Ref<T | null>) {
   loading[name] = true; errors[name] = ''
-  try { target.value = await fn() } catch (e: any) { errors[name] = e.message } finally { loading[name] = false }
+  try { target.value = await fn() } catch (error: unknown) { errors[name] = error instanceof Error ? error.message : String(error) } finally { loading[name] = false }
 }
 
 // ── 批量测试 ──
 onMounted(async () => {
   await call('health', () => fetch('http://127.0.0.1:8000/api/health').then(r => r.json()), health)
-  await call('video', () => api.getVideo('video_demo'), video)
-  await call('identify', () => api.identify('video_demo', 0, { x: 0.22, y: 0.25, width: 0.38, height: 0.34 }), identify)
-  await call('profile', () => api.getProfile('demo_category'), profile)
+  await call('video', () => api.getVideo('demo_video_001'), video)
+  await call('identify', () => api.identify('demo_video_001', 0, { x: 0.45, y: 0.55, width: 0.1, height: 0.15 }), identify)
+  await call('profile', () => api.getProfile('gaming_mouse'), profile)
   await call('verification', () => api.runVerification({
-    video_id: 'video_demo', product_id: 'demo_product_001', category_id: 'demo_category',
+    video_id: 'demo_video_001', product_id: 'atk_a9_ultimate', category_id: 'gaming_mouse',
     conditions: { usage_scene: '场景A' }, raw_query: '',
   }), verification)
-  await call('evidence', () => api.getEvidence('evidence_demo_support'), evidence)
-  await call('comparison', () => api.addComparison({ product_id: 'demo_product_001', category_id: 'demo_category' }), comparison)
+  await call('evidence', () => api.getEvidence('ev_video_002'), evidence)
+  await call('comparison', () => api.addComparison({ product_id: 'atk_a9_ultimate', category_id: 'gaming_mouse' }), comparison)
   await call('search', () => fetch('http://127.0.0.1:8000/api/verification/run', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ video_id: 'video_demo', product_id: 'demo_product_001', category_id: 'demo_category', conditions: {}, raw_query: '' }),
+    body: JSON.stringify({ video_id: 'demo_video_001', product_id: 'atk_a9_ultimate', category_id: 'gaming_mouse', conditions: {}, raw_query: '' }),
   }).then(r => r.json()), searchResult)
 })
 
@@ -77,7 +77,7 @@ function badge(success: boolean) { return success ? '✅' : '❌' }
 
       <!-- 2. Video -->
       <div class="card">
-        <h3><span class="method get">GET</span> /api/videos/video_demo</h3>
+        <h3><span class="method get">GET</span> /api/videos/demo_video_001</h3>
         <p class="desc">视频详情 + 对象框数据</p>
         <div v-if="video" class="json">{{ JSON.stringify(video, null, 2) }}</div>
         <div v-else class="loading">加载中…</div>
@@ -93,7 +93,7 @@ function badge(success: boolean) { return success ? '✅' : '❌' }
 
       <!-- 4. Category Profile -->
       <div class="card">
-        <h3><span class="method get">GET</span> /api/categories/demo_category/profile</h3>
+        <h3><span class="method get">GET</span> /api/categories/gaming_mouse/profile</h3>
         <p class="desc">品类动态字段配置（5种类型）</p>
         <div v-if="profile" class="json">{{ JSON.stringify(profile, null, 2) }}</div>
         <div v-else class="loading">加载中…</div>
@@ -109,7 +109,7 @@ function badge(success: boolean) { return success ? '✅' : '❌' }
 
       <!-- 6. Evidence Detail -->
       <div class="card">
-        <h3><span class="method get">GET</span> /api/evidence/evidence_demo_support</h3>
+        <h3><span class="method get">GET</span> /api/evidence/ev_video_002</h3>
         <p class="desc">单条证据详情（含来源平台、关联级别等）</p>
         <div v-if="evidence" class="json">{{ JSON.stringify(evidence, null, 2) }}</div>
         <div v-else class="loading">加载中…</div>
