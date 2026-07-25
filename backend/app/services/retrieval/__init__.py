@@ -84,8 +84,8 @@ def search_evidence(
     risks = [e for e in unique if e.get("dimension") == "risk"]
     pending = [e for e in unique if e.get("dimension") not in ("support", "identity", "fit", "risk")]
 
-    # 7. source_ids
-    source_ids = list({e.get("source_title", "") for e in unique if e.get("source_title")})
+    # 7. source_ids 使用稳定的证据ID（而非 source_title）
+    source_ids = list({e.get("evidence_id", "") for e in unique if e.get("evidence_id")})
 
     return {
         "product_id": product_id,
