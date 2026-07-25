@@ -1,14 +1,28 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
+
+import { useSessionStore } from '../../app/store/session'
+import { api } from '../../services/api'
+import type { PurchaseChannel } from '../../types/api'
 
 const showChannelsModal = ref(false)
 
-const channels = [
-  { platform: '天猫旗舰店', price: '￥329', tag: '券后秒杀' },
-  { platform: '京东自营', price: '￥339', tag: '百亿补贴' },
-  { platform: '抖音电商', price: '￥319', tag: '直播专享低价' },
-  { platform: '拼多多官方', price: '￥299', tag: '多人拼团' },
-]
+const channels = ref<PurchaseChannel[]>([])
+const loading = ref(false)
+const error = ref('')
+const session = useSessionStore()
+
+onMounted(async () => {
+  if (!session.selectedProduct) return
+  loading.value = true
+  try {
+    channels.value = await api.getPurchaseChannels(session.selectedProduct.product_id)
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : '购买渠道加载失败'
+  } finally {
+    loading.value = false
+  }
+})
 
 function openModal() {
   showChannelsModal.value = true
@@ -63,14 +77,17 @@ function closeModal() {
         </div>
 
         <div class="channel-list">
-          <div v-for="c in channels" :key="c.platform" class="channel-item">
+          <div v-if="loading" class="channel-empty">正在读取已接入的购买渠道…</div>
+          <div v-else-if="error" class="channel-empty">{{ error }}</div>
+          <div v-else-if="!channels.length" class="channel-empty">当前暂无可用购买渠道（演示数据）</div>
+          <div v-for="c in channels" v-else :key="c.channel_id" class="channel-item">
             <div class="item-meta">
-              <span class="platform-name">{{ c.platform }}</span>
-              <span class="tag-chip">{{ c.tag }}</span>
+              <span class="platform-name">{{ c.channel_name }}</span>
+              <span class="tag-chip">{{ c.availability }}</span>
             </div>
             <div class="item-price">
-              <span class="price-val">{{ c.price }}</span>
-              <button class="buy-btn" @click="closeModal">前往</button>
+              <span class="price-val">{{ c.note || '暂无价格信息' }}</span>
+              <button class="buy-btn" :disabled="!c.url" @click="closeModal">{{ c.url ? '前往' : '暂不可用' }}</button>
             </div>
           </div>
         </div>

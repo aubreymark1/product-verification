@@ -75,11 +75,59 @@ export interface VerificationResult {
   result_id: string
   product: CandidateProduct
   conditions: Record<string, unknown>
+  raw_query: string
+  round: number
+  is_follow_up: boolean
+  needs_inherited: boolean
+  recommendation_score: number
+  recommendation_basis: RecommendationDimension[]
   summary: string
   support: Conclusion[]
   risks: Conclusion[]
   uncertain: Conclusion[]
-  confidence: number
+  dissatisfaction_reasons: string[]
+  purchase_channels: PurchaseChannel[]
+}
+
+export interface RecommendationDimension {
+  key: string
+  label: string
+  score: number
+  rationale: string
+  source_ids: string[]
+}
+
+export type PurchaseChannelType = 'official' | 'marketplace' | 'retail' | 'other'
+
+export interface PurchaseChannel {
+  channel_id: string
+  product_id: string
+  channel_name: string
+  channel_type: PurchaseChannelType
+  url: string | null
+  availability: 'available' | 'pending' | 'placeholder'
+  note: string
+}
+
+export interface VerificationRequest {
+  video_id: string
+  product_id: string
+  category_id: string
+  conditions: Record<string, unknown>
+  raw_query: string
+  input_mode?: 'text' | 'voice' | 'mixed'
+}
+
+export interface RerunRecommendationRequest {
+  video_id: string
+  product_id: string
+  category_id: string
+  previous_result_id: string
+  dissatisfaction_reasons: string[]
+  dissatisfaction_note: string
+  inherit_previous_needs: boolean
+  conditions_patch: Record<string, unknown>
+  raw_query: string
 }
 
 export interface Evidence {

@@ -19,7 +19,7 @@ import type { Evidence, VerificationResult } from '../../types/api'
 const router = useRouter()
 const session = useSessionStore()
 
-const videoSrc = '/mock/videos/mouse-demo.mp4'
+const videoSrc = '/assets/mock/videos/main_demo.mp4'
 const videoRef = ref<HTMLVideoElement | null>(null)
 const isPaused = ref(false)
 
@@ -28,7 +28,7 @@ const showDrawer = ref(false)
 const drawerStep = ref(1)
 
 // Selected product candidate state
-const selectedCandidateId = ref('product_gpro')
+const selectedCandidateId = ref('atk_a9_ultimate')
 const rawQueryText = ref('')
 const isRecording = ref(false)
 
@@ -46,13 +46,13 @@ const verificationResult = ref<VerificationResult | null>(null)
 const selectedEvidence = ref<Evidence | null>(null)
 
 onMounted(() => {
-  session.videoId = 'video_demo'
-  session.categoryId = 'mouse'
+  session.videoId = 'demo_video_001'
+  session.categoryId = 'gaming_mouse'
   session.setProduct({
-    product_id: 'product_gpro',
+    product_id: 'atk_a9_ultimate',
     product_name: '轻量化无线游戏鼠标 G Pro',
-    confidence: 0.92,
-    image_url: null,
+    confidence: 0.98,
+    image_url: '/assets/mock/products/62e1042760e7bac7a95e2a27a8bfde1e.png',
   })
 })
 
@@ -132,7 +132,7 @@ async function startAiAnalysis() {
     const res = await api.runVerification({
       video_id: session.videoId,
       product_id: selectedCandidateId.value,
-      category_id: 'mouse',
+      category_id: 'gaming_mouse',
       conditions: {
         budget: selectedBudget.value,
         connection: selectedConnection.value,
@@ -253,8 +253,8 @@ async function openEvidenceDetail(id: string) {
           <div class="candidate-cards-list">
             <div
               class="cand-card-item"
-              :class="{ selected: selectedCandidateId === 'product_gpro' }"
-              @click="selectedCandidateId = 'product_gpro'"
+              :class="{ selected: selectedCandidateId === 'atk_a9_ultimate' }"
+              @click="selectedCandidateId = 'atk_a9_ultimate'"
             >
               <div class="card-left-img"></div>
               <div class="card-right-info">
@@ -268,8 +268,8 @@ async function openEvidenceDetail(id: string) {
 
             <div
               class="cand-card-item"
-              :class="{ selected: selectedCandidateId === 'product_viper' }"
-              @click="selectedCandidateId = 'product_viper'"
+              :class="{ selected: selectedCandidateId === 'razer_viper_v3_pro' }"
+              @click="selectedCandidateId = 'razer_viper_v3_pro'"
             >
               <div class="card-left-img"></div>
               <div class="card-right-info">
@@ -400,7 +400,7 @@ async function openEvidenceDetail(id: string) {
         <div v-else-if="drawerStep === 4" class="drawer-step result">
           <div class="top-hero-block">
             <div class="top-hero-row">
-              <RecommendationGauge :score="verificationResult?.confidence || 0.82" />
+              <RecommendationGauge :score="verificationResult?.recommendation_score || 0.82" />
               <ProductHeroCard :product="verificationResult?.product || session.selectedProduct" categoryName="鼠标/电竞游戏鼠标" />
             </div>
 

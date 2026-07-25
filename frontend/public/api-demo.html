@@ -41,11 +41,11 @@ tr.hl td { background: #fef3c7; font-weight: 600; }
 <div id="badges" class="badges"></div>
 <div class="grid">
   <div class="card"><h3><span class="method get">GET</span> /api/health</h3><p class="desc">服务健康检查</p><pre id="r-health" class="loading">加载中…</pre></div>
-  <div class="card"><h3><span class="method get">GET</span> /api/videos/video_demo</h3><p class="desc">视频详情 + 对象框数据</p><pre id="r-video" class="loading">加载中…</pre></div>
+  <div class="card"><h3><span class="method get">GET</span> /api/videos/demo_video_001</h3><p class="desc">视频详情 + 对象框数据</p><pre id="r-video" class="loading">加载中…</pre></div>
   <div class="card"><h3><span class="method post">POST</span> /api/vision/identify</h3><p class="desc">视觉识别 → 品类 + 候选商品列表</p><pre id="r-identify" class="loading">加载中…</pre></div>
-  <div class="card"><h3><span class="method get">GET</span> /api/categories/demo_category/profile</h3><p class="desc">品类动态字段配置（5种类型）</p><pre id="r-profile" class="loading">加载中…</pre></div>
+  <div class="card"><h3><span class="method get">GET</span> /api/categories/gaming_mouse/profile</h3><p class="desc">品类动态字段配置（5种类型）</p><pre id="r-profile" class="loading">加载中…</pre></div>
   <div class="card hl"><h3><span class="method post">POST</span> /api/verification/run ⭐</h3><p class="desc">验真分析 — 返回 support / risks / uncertain + 置信度</p><pre id="r-verify" class="loading">加载中…</pre></div>
-  <div class="card"><h3><span class="method get">GET</span> /api/evidence/evidence_demo_support</h3><p class="desc">单条证据详情（含来源平台、关联级别等）</p><pre id="r-evidence" class="loading">加载中…</pre></div>
+  <div class="card"><h3><span class="method get">GET</span> /api/evidence/ev_video_002</h3><p class="desc">单条证据详情（含来源平台、关联级别等）</p><pre id="r-evidence" class="loading">加载中…</pre></div>
   <div class="card"><h3><span class="method post">POST</span> /api/comparison/add</h3><p class="desc">加入横评队列（第一阶段占位）</p><pre id="r-comparison" class="loading">加载中…</pre></div>
   <div class="card hl"><h3>&#128260; 降级验证 对比演示</h3><p class="desc">左侧：预置缓存 / 右侧：实时降级检索结果</p><div class="contrast"><div><strong>&#128230; 预置缓存结果</strong><pre id="r-cached" class="loading">加载中…</pre></div><div><strong>&#128270; 降级检索结果</strong><pre id="r-fallback" class="loading">加载中…</pre></div></div></div>
 </div>
@@ -94,28 +94,28 @@ async function call(name, fn) {
 
 window.onload = async () => {
   await call('health', () => fetch(API + '/health').then(r => r.json()));
-  await call('video', () => fetch(API + '/videos/video_demo').then(r => r.json()).then(d => d.data));
+  await call('video', () => fetch(API + '/videos/demo_video_001').then(r => r.json()).then(d => d.data));
   await call('identify', () => fetch(API + '/vision/identify', {
     method: 'POST', headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({video_id:'video_demo',timestamp:0,selection:{x:0.22,y:0.25,width:0.38,height:0.34}})
+    body: JSON.stringify({video_id:'demo_video_001',timestamp:0,selection:{x:0.45,y:0.55,width:0.1,height:0.15}})
   }).then(r => r.json()).then(d => d.data));
-  await call('profile', () => fetch(API + '/categories/demo_category/profile').then(r => r.json()).then(d => d.data));
+  await call('profile', () => fetch(API + '/categories/gaming_mouse/profile').then(r => r.json()).then(d => d.data));
   await call('verify', () => fetch(API + '/verification/run', {
     method: 'POST', headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({video_id:'video_demo',product_id:'demo_product_001',category_id:'demo_category',conditions:{usage_scene:'场景A'},raw_query:''})
+    body: JSON.stringify({video_id:'demo_video_001',product_id:'atk_a9_ultimate',category_id:'gaming_mouse',conditions:{hand_size:'中手 (17-19cm)'},raw_query:''})
   }).then(r => r.json()).then(d => d.data));
-  await call('evidence', () => fetch(API + '/evidence/evidence_demo_support').then(r => r.json()).then(d => d.data));
+  await call('evidence', () => fetch(API + '/evidence/ev_video_002').then(r => r.json()).then(d => d.data));
   await call('comparison', () => fetch(API + '/comparison/add', {
     method: 'POST', headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({product_id:'demo_product_001',category_id:'demo_category'})
+    body: JSON.stringify({product_id:'atk_a9_ultimate',category_id:'gaming_mouse'})
   }).then(r => r.json()).then(d => d.data));
   await call('cached', () => fetch(API + '/verification/run', {
     method: 'POST', headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({video_id:'video_demo',product_id:'demo_product_001',category_id:'demo_category',conditions:{},raw_query:''})
+    body: JSON.stringify({video_id:'demo_video_001',product_id:'atk_a9_ultimate',category_id:'gaming_mouse',conditions:{},raw_query:''})
   }).then(r => r.json()).then(d => d.data));
   await call('fallback', () => fetch(API + '/verification/run', {
     method: 'POST', headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({video_id:'video_demo',product_id:'demo_product_002',category_id:'demo_category',conditions:{},raw_query:''})
+    body: JSON.stringify({video_id:'demo_video_001',product_id:'logitech_gpw_1',category_id:'gaming_mouse',conditions:{},raw_query:''})
   }).then(r => r.json()).then(d => d.data));
 };
 </script>

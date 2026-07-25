@@ -21,6 +21,27 @@ const evidence = ref<Evidence | null>(null)
 const evidenceLoading = ref(false)
 const error = ref('')
 
+async function rerunRecommendation() {
+  if (!session.verificationResult || !session.selectedProduct) return
+  try {
+    const result = await api.rerunRecommendation({
+      video_id: session.videoId,
+      product_id: session.selectedProduct.product_id,
+      category_id: session.categoryId,
+      previous_result_id: session.verificationResult.result_id,
+      dissatisfaction_reasons: [],
+      dissatisfaction_note: '',
+      inherit_previous_needs: true,
+      conditions_patch: {},
+      raw_query: '',
+    })
+    session.setProduct(result.product)
+    session.setVerificationResult(result)
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : '再推荐失败'
+  }
+}
+
 async function openEvidence(id: string) {
   evidenceLoading.value = true
   error.value = ''
@@ -69,7 +90,7 @@ async function addComparison() {
       <!-- Top Row: Gauge + Hero Card -->
       <div class="top-hero-row">
         <RecommendationGauge
-          :score="session.verificationResult.confidence"
+          :score="session.verificationResult.recommendation_score"
           :summary="session.verificationResult.summary"
           class="hero-gauge"
         />
@@ -130,7 +151,7 @@ async function addComparison() {
       <MultiChannelPurchase />
 
       <!-- Re-recommendation Loop Banner -->
-      <ReRecommendLoop />
+      <ReRecommendLoop @click="rerunRecommendation" />
 
       <!-- Bottom Disclaimer -->
       <div class="disclaimer-footer">

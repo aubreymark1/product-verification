@@ -22,18 +22,18 @@ const error = ref('')
 onMounted(async () => {
   // Fallback product set if user accessed /conditions directly
   if (!session.hasProduct) {
-    session.videoId = 'video_demo'
-    session.categoryId = 'mouse'
+    session.videoId = 'demo_video_001'
+    session.categoryId = 'gaming_mouse'
     session.setProduct({
-      product_id: 'product_gpro',
+      product_id: 'atk_a9_ultimate',
       product_name: '轻量化电竞鼠标 G Pro',
-      confidence: 0.95,
-      image_url: null,
+      confidence: 0.98,
+      image_url: '/assets/mock/products/62e1042760e7bac7a95e2a27a8bfde1e.png',
     })
   }
 
   try {
-    profile.value = await api.getProfile(session.categoryId || 'mouse')
+    profile.value = await api.getProfile(session.categoryId || 'gaming_mouse')
   } catch (err) {
     error.value = err instanceof Error ? err.message : '品类配置加载失败'
   } finally {
