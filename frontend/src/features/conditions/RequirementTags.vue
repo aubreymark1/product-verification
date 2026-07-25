@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { CircleCheck, CircleX } from 'lucide-vue-next'
 
 export interface RequirementItem {
   key: string
@@ -37,7 +38,7 @@ const requirements = computed<RequirementItem[]>(() => {
     } else if (typeof v === 'number') {
       label = `${k} <= ${v}`
       if (k.includes('budget') || k.includes('price') || k.includes('预算')) {
-        label = `预算 ≤${v}元`
+        label = `预算 ≤ ${v}元`
         status = 'unmet'
       }
     } else {
@@ -58,13 +59,18 @@ const requirements = computed<RequirementItem[]>(() => {
     )
   }
 
-  return result
+  const order = ['FPS 游戏', '无线连接', '轻量化', '预算 ≤ 300元']
+  return result.sort((a, b) => {
+    const aIndex = order.indexOf(a.label)
+    const bIndex = order.indexOf(b.label)
+    return (aIndex === -1 ? order.length : aIndex) - (bIndex === -1 ? order.length : bIndex)
+  })
 })
 </script>
 
 <template>
   <div class="my-requirements-card">
-    <div class="card-title">你的使用条件</div>
+    <div class="card-title">我的需求</div>
     <div class="chips-row">
       <span
         v-for="item in requirements"
@@ -72,21 +78,12 @@ const requirements = computed<RequirementItem[]>(() => {
         class="compact-req-tag"
         :class="item.status"
       >
-        <!-- Circle Checkmark Icon for Met -->
         <span v-if="item.status === 'met'" class="circle-icon met-icon">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="9" />
-            <path d="M8.5 12.5l2.5 2.5 5-5" />
-          </svg>
+          <CircleCheck :size="15" :stroke-width="1.8" />
         </span>
 
-        <!-- Circle Cross Icon for Unmet -->
         <span v-else-if="item.status === 'unmet'" class="circle-icon unmet-icon">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="9" />
-            <line x1="15" y1="9" x2="9" y2="15" />
-            <line x1="9" y1="9" x2="15" y2="15" />
-          </svg>
+          <CircleX :size="15" :stroke-width="1.8" />
         </span>
 
         <span class="tag-text">{{ item.label }}</span>
@@ -97,69 +94,83 @@ const requirements = computed<RequirementItem[]>(() => {
 
 <style scoped>
 .my-requirements-card {
-  background: #121824;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-  padding: 12px 14px;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(255, 255, 255, 0.06), transparent 38%),
+    rgba(13, 23, 35, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 14px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    0 8px 18px rgba(0, 0, 0, 0.11);
 }
 
 .card-title {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.88);
   font-weight: 500;
+  line-height: 1.45;
 }
 
 .chips-row {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  gap: 4px;
+  flex-wrap: nowrap;
+  overflow: hidden;
 }
 
 .compact-req-tag {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  border-radius: 5px;
-  font-size: 11px;
-  font-weight: 400;
+  gap: 3px;
+  height: 25px;
+  min-width: 0;
+  padding: 0 5px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1;
   background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(255, 255, 255, 0.7);
   transition: all 0.15s ease;
 }
 
-/* 符合 (met) - 标签变绿 + 圆圈打勾 */
 .compact-req-tag.met {
-  background: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.25);
-  color: #10b981;
+  background: rgba(35, 211, 196, 0.1);
+  border: 1px solid rgba(35, 211, 196, 0.18);
+  color: rgba(105, 231, 220, 0.86);
 }
 
 .met-icon {
-  color: #10b981;
+  color: rgba(105, 231, 220, 0.9);
   display: flex;
   align-items: center;
 }
 
-/* 不符合 (unmet) - 标签变红 + 圆圈打叉 */
+.compact-req-tag svg {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+}
+
 .compact-req-tag.unmet {
-  background: rgba(239, 68, 68, 0.12);
-  border: 1px solid rgba(239, 68, 68, 0.25);
-  color: #f87171;
+  background: rgba(255, 72, 92, 0.095);
+  border: 1px solid rgba(255, 72, 92, 0.16);
+  color: rgba(255, 129, 142, 0.86);
 }
 
 .unmet-icon {
-  color: #f87171;
+  color: rgba(255, 129, 142, 0.88);
   display: flex;
   align-items: center;
 }
 
-/* 未提及 (neutral) - 保持不变 */
 .compact-req-tag.neutral {
   background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   color: rgba(255, 255, 255, 0.6);
 }
 
@@ -169,6 +180,15 @@ const requirements = computed<RequirementItem[]>(() => {
 }
 
 .tag-text {
-  letter-spacing: 0.1px;
+  letter-spacing: 0;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+@media (max-width: 390px) {
+  .compact-req-tag {
+    font-size: 10px;
+    padding: 0 5px;
+  }
 }
 </style>

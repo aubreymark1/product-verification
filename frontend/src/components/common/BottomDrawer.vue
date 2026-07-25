@@ -113,6 +113,25 @@ const emit = defineEmits<{
   display: flex;
   flex-direction: column;
   gap: 18px;
+  scrollbar-color: rgba(36, 56, 86, 0.52) transparent;
+  scrollbar-width: thin;
+}
+
+.drawer-body::-webkit-scrollbar {
+  width: 2px;
+}
+
+.drawer-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.drawer-body::-webkit-scrollbar-thumb {
+  background: rgba(36, 56, 86, 0.52);
+  border-radius: 999px;
+}
+
+.drawer-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(48, 72, 108, 0.68);
 }
 
 .drawer-enter-active, .drawer-leave-active {

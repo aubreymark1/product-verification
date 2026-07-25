@@ -2,6 +2,8 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 
 import type { CandidateProduct, IdentifyResult, VerificationResult } from '../../types/api'
+import type { RecommendationProduct } from '../../mock/recommendationData'
+import type { PriceChannel } from '../../mock/priceComparisonData'
 
 export const useSessionStore = defineStore('session', () => {
   const videoId = ref('demo_video_001')
@@ -9,6 +11,11 @@ export const useSessionStore = defineStore('session', () => {
   const selectedProduct = ref<CandidateProduct | null>(null)
   const identifyResult = ref<IdentifyResult | null>(null)
   const verificationResult = ref<VerificationResult | null>(null)
+  const selectedPriceProduct = ref<CandidateProduct | RecommendationProduct | null>(null)
+  const recommendationProducts = ref<RecommendationProduct[]>([])
+  const selectedRecommendation = ref<RecommendationProduct | null>(null)
+  const priceChannels = ref<PriceChannel[]>([])
+  const inheritedConditions = ref<Record<string, unknown>>({})
 
   const hasProduct = computed(() => Boolean(selectedProduct.value && categoryId.value))
 
@@ -25,5 +32,25 @@ export const useSessionStore = defineStore('session', () => {
     verificationResult.value = result
   }
 
-  return { videoId, categoryId, selectedProduct, identifyResult, verificationResult, hasProduct, setIdentification, setProduct, setVerificationResult }
+  function setSelectedPriceProduct(product: CandidateProduct | RecommendationProduct) {
+    selectedPriceProduct.value = product
+  }
+
+  return {
+    videoId,
+    categoryId,
+    selectedProduct,
+    identifyResult,
+    verificationResult,
+    selectedPriceProduct,
+    recommendationProducts,
+    selectedRecommendation,
+    priceChannels,
+    inheritedConditions,
+    hasProduct,
+    setIdentification,
+    setProduct,
+    setVerificationResult,
+    setSelectedPriceProduct,
+  }
 })
