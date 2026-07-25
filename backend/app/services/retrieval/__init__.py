@@ -11,6 +11,16 @@
 from __future__ import annotations
 
 from app.database.mock_store import mock_store, MockStore
+from app.services.retrieval.product_image import (
+    CachedProductImageProvider,
+    NullProductImageProvider,
+    ProductImageProvider,
+    ProductImageRequest,
+    ProductImageResult,
+    SearchImageProvider,
+    TavilyImageProvider,
+    configured_product_image_provider,
+)
 
 
 def search_evidence(

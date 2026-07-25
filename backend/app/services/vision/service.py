@@ -10,6 +10,11 @@ from app.schemas.contracts import (
 )
 from app.services.vision.matcher import ProductMatcher
 from app.services.verification.fallback import FallbackProvider
+from app.services.retrieval import (
+    ProductImageProvider,
+    ProductImageRequest,
+    configured_product_image_provider,
+)
 from app.services.vision.frame_source import VideoFrameSource
 from app.services.vision.openai_provider import OpenAIVisionProvider, VisionAnalysis
 
@@ -24,6 +29,7 @@ class VisionService:
         provider: OpenAIVisionProvider | None = None,
         frame_source: VideoFrameSource | None = None,
         fallback_provider: FallbackProvider | None = None,
+        image_provider: ProductImageProvider | None = None,
     ) -> None:
         self.store = store
         self.matcher = matcher or ProductMatcher()
@@ -32,6 +38,14 @@ class VisionService:
             Path(settings.vision_frame_dir) if settings.vision_frame_dir else None
         )
         self.fallback_provider = fallback_provider or FallbackProvider()
+        self.image_provider = image_provider or configured_product_image_provider(
+            enabled=settings.product_image_search_enabled,
+            base_url=settings.product_image_search_base_url,
+            provider_name=settings.product_image_search_provider,
+            api_key=settings.product_image_search_api_key,
+            timeout_seconds=settings.product_image_search_timeout_seconds,
+            ttl_seconds=settings.product_image_cache_ttl_seconds,
+        )
 
     def identify(self, request: SelectionRequest) -> IdentifyResult:
         video = self.store.find_by_id("videos.json", "video_id", request.video_id)
@@ -39,17 +53,12 @@ class VisionService:
         category_id = str(detected_object["category_id"])
         profile = self.store.find_by_id("category-profiles.json", "category_id", category_id)
 
-        candidates = [
-            CandidateProduct.model_validate(item)
-            for item in self.store.list("products.json")
-            if item.get("category_id") == category_id
-        ]
+        analysis = self._real_analysis(request.video_id)
         visual_attributes = {
             "object_id": str(detected_object["object_id"]),
             "selection_status": "mock_identified",
             "recognition_mode": "mock_fallback",
         }
-        analysis = self._real_analysis(request.video_id)
         if analysis is not None:
             visual_attributes.update(
                 {
@@ -62,6 +71,33 @@ class VisionService:
                     "analysis_summary": analysis.summary,
                 }
             )
+        candidates = []
+        for item in self.store.list("products.json"):
+            if item.get("category_id") != category_id:
+                continue
+            candidate = CandidateProduct.model_validate(item)
+            if not candidate.image_url:
+                try:
+                    image = self.image_provider.search(
+                        ProductImageRequest(
+                            product_id=candidate.product_id,
+                            product_name=candidate.product_name,
+                            brand=item.get("brand") or visual_attributes.get("brand"),
+                            model=item.get("model") or visual_attributes.get("model"),
+                            category=str(profile.get("category_name") or category_id),
+                            visual_attributes=visual_attributes,
+                        )
+                    )
+                except Exception:
+                    image = None
+                if image is not None:
+                    candidate = candidate.model_copy(update={
+                        "image_url": image.image_url,
+                        "image_source_url": image.image_source_url,
+                        "image_source_name": image.image_source_name,
+                        "image_fetched_at": image.image_fetched_at,
+                    })
+            candidates.append(candidate)
         return IdentifyResult(
             category_id=category_id,
             category_name=str(profile["category_name"]),
