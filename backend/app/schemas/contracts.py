@@ -164,6 +164,39 @@ class Evidence(BaseModel):
     confidence: float = Field(ge=0, le=1)
 
 
+class ProductFact(BaseModel):
+    """由可追溯证据整理出的品类无关商品事实。"""
+
+    fact_id: str
+    product_id: str
+    category_id: str
+    key: str
+    label: str
+    value: str
+    confidence: float = Field(ge=0, le=1)
+    source_type: SourceType
+    source_ids: list[str] = Field(min_length=1)
+
+
+class ProductFactsResponse(BaseModel):
+    product_id: str
+    category_id: str
+    facts: list[ProductFact] = Field(default_factory=list)
+    total: int = Field(default=0, ge=0)
+    insufficient: bool = False
+
+
+class EvidenceSearchResult(BaseModel):
+    product_id: str
+    category_id: str | None = None
+    supporting: list[Evidence] = Field(default_factory=list)
+    risks: list[Evidence] = Field(default_factory=list)
+    pending: list[Evidence] = Field(default_factory=list)
+    source_ids: list[str] = Field(default_factory=list)
+    total: int = Field(default=0, ge=0)
+    insufficient: bool = False
+
+
 class ComparisonRequest(BaseModel):
     product_id: str
     category_id: str
