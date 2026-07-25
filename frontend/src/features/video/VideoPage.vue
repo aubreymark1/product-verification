@@ -1,5 +1,20 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
+import {
+  ChevronRight,
+  CircleUserRound,
+  Heart,
+  House,
+  Menu,
+  MessageCircle,
+  Music2,
+  Plus,
+  Search,
+  Share2,
+  Star,
+  UserRound,
+  Volume2,
+} from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 
 import VerifyPillButton from '../../components/common/VerifyPillButton.vue'
@@ -26,6 +41,7 @@ const isPaused = ref(false)
 // Drawer state (1: Target Confirmation, 2: Requirements Input, 3: AI Analysis, 4: Results)
 const showDrawer = ref(false)
 const drawerStep = ref(1)
+const isAddingNewRequirement = ref(false)
 
 // Selected product candidate state
 const selectedCandidateId = ref('product_gpro')
@@ -81,11 +97,19 @@ function openVerificationDrawer() {
   if (videoRef.value && !videoRef.value.paused) {
     videoRef.value.pause()
   }
+  isAddingNewRequirement.value = false
   drawerStep.value = 1
   showDrawer.value = true
 }
 
 function confirmProductStep() {
+  isAddingNewRequirement.value = false
+  drawerStep.value = 2
+}
+
+function openNewRequirementStep() {
+  rawQueryText.value = ''
+  isAddingNewRequirement.value = true
   drawerStep.value = 2
 }
 
@@ -144,11 +168,27 @@ async function startAiAnalysis() {
       if (aiTimer) clearInterval(aiTimer)
       verificationResult.value = res
       session.setVerificationResult(res)
-      drawerStep.value = 4
+      if (isAddingNewRequirement.value) {
+        session.inheritedConditions = {
+          ...session.inheritedConditions,
+          rawQuery: rawQueryText.value,
+        }
+        showDrawer.value = false
+        isAddingNewRequirement.value = false
+        router.push('/recommendations')
+      } else {
+        drawerStep.value = 4
+      }
     }, 1300)
   } catch (err) {
     console.error(err)
-    drawerStep.value = 4
+    if (isAddingNewRequirement.value) {
+      showDrawer.value = false
+      isAddingNewRequirement.value = false
+      router.push('/recommendations')
+    } else {
+      drawerStep.value = 4
+    }
   }
 }
 
@@ -181,10 +221,18 @@ async function openEvidenceDetail(id: string) {
       <div class="video-feed-screen" @click="togglePlay">
         <!-- Top Nav -->
         <div class="tiktok-top-bar" @click.stop>
+          <button class="feed-icon-button" type="button" aria-label="打开菜单">
+            <Menu :size="23" :stroke-width="2" />
+          </button>
           <div class="nav-tabs">
             <span>关注</span>
             <span class="active">推荐</span>
+            <span>直播</span>
+            <span>商城</span>
           </div>
+          <button class="feed-icon-button" type="button" aria-label="搜索">
+            <Search :size="23" :stroke-width="2" />
+          </button>
         </div>
 
         <!-- Video Element -->
@@ -216,34 +264,59 @@ async function openEvidenceDetail(id: string) {
 
         <!-- Right TikTok Sidebar -->
         <div class="tiktok-right-sidebar" @click.stop>
+          <div class="creator-avatar-wrap">
+            <div class="creator-avatar">
+              <CircleUserRound :size="28" :stroke-width="1.6" />
+            </div>
+            <span class="follow-plus" aria-hidden="true"><Plus :size="13" :stroke-width="2.6" /></span>
+          </div>
           <div class="sidebar-item">
-            <span class="icon">❤️</span>
+            <Heart class="sidebar-icon" :size="29" :stroke-width="1.8" fill="currentColor" />
             <span class="count">143.7万</span>
           </div>
           <div class="sidebar-item">
-            <span class="icon">💬</span>
+            <MessageCircle class="sidebar-icon" :size="29" :stroke-width="1.8" fill="currentColor" />
             <span class="count">1.4万</span>
           </div>
           <div class="sidebar-item">
-            <span class="icon">⭐</span>
+            <Star class="sidebar-icon" :size="29" :stroke-width="1.8" fill="currentColor" />
             <span class="count">3.4万</span>
+          </div>
+          <div class="sidebar-item">
+            <Share2 class="sidebar-icon" :size="29" :stroke-width="1.8" />
+            <span class="count">分享</span>
+          </div>
+          <div class="sidebar-item sound-item">
+            <Volume2 class="sidebar-icon" :size="27" :stroke-width="1.8" />
+          </div>
+        </div>
+
+        <div class="video-bottom-content" @click.stop>
+          <div class="creator-copy">
+            <strong>@创作者</strong>
+            <p>分享真实使用体验与产品细节</p>
+            <span><Music2 :size="13" :stroke-width="1.8" /> 原声 · 产品体验</span>
+          </div>
+          <div class="hot-strip">
+            <span>热门内容正在播放</span>
+            <span>更多 <ChevronRight :size="15" :stroke-width="2" /></span>
           </div>
         </div>
 
         <!-- Bottom Navigation Bar -->
         <div class="tiktok-bottom-nav" @click.stop>
-          <span class="active">首页</span>
-          <span>朋友</span>
-          <span class="plus-btn">+</span>
-          <span>消息</span>
-          <span>我</span>
+          <span class="bottom-nav-item active"><House class="bottom-nav-icon" :size="19" :stroke-width="2" />首页</span>
+          <span class="bottom-nav-item"><UserRound class="bottom-nav-icon" :size="19" :stroke-width="1.9" />朋友</span>
+          <span class="plus-btn" aria-label="发布"><Plus :size="24" :stroke-width="2.2" /></span>
+          <span class="bottom-nav-item"><MessageCircle class="bottom-nav-icon" :size="19" :stroke-width="1.9" />消息</span>
+          <span class="bottom-nav-item"><UserRound class="bottom-nav-icon" :size="19" :stroke-width="1.9" />我</span>
         </div>
       </div>
 
       <!-- Bottom Sheet Drawer Modal -->
       <BottomDrawer
         :show="showDrawer"
-        :title="drawerStep === 1 ? '确认目标商品' : drawerStep === 2 ? '补充使用需求' : drawerStep === 3 ? 'AI 分析中' : '验真结果'"
+        :title="drawerStep === 1 ? '确认目标商品' : drawerStep === 2 ? (isAddingNewRequirement ? '增加新需求...' : '补充使用需求') : drawerStep === 3 ? 'AI 分析中' : '验真结果'"
         @close="showDrawer = false"
       >
         <!-- STEP 1: 确认目标商品 -->
@@ -330,7 +403,7 @@ async function openEvidenceDetail(id: string) {
 
           <!-- 开始验真 主按钮 (已删除预计8秒生成结果字样) -->
           <button class="restrained-primary-btn" @click="startAiAnalysis">
-            <span class="btn-main-text">开始验真</span>
+            <span class="btn-main-text">{{ isAddingNewRequirement ? 'AI 验真并推出新产品' : '开始验真' }}</span>
           </button>
         </div>
 
@@ -393,7 +466,7 @@ async function openEvidenceDetail(id: string) {
           </div>
 
           <MultiChannelPurchase />
-          <ReRecommendLoop @click="drawerStep = 2" />
+          <ReRecommendLoop @click="openNewRequirementStep" />
         </div>
       </BottomDrawer>
 
@@ -522,8 +595,8 @@ async function openEvidenceDetail(id: string) {
 
 .floating-pill-position {
   position: absolute;
-  bottom: 100px;
-  right: 18px;
+  right: 72px;
+  bottom: 178px;
   z-index: 20;
 }
 
@@ -990,5 +1063,261 @@ async function openEvidenceDetail(id: string) {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+/* TikTok-style feed chrome stays readable over the video without crowding the frame. */
+.video-feed-screen {
+  overflow: hidden;
+}
+
+.video-feed-screen::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 10;
+  height: 124px;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.96) 0%,
+    rgba(0, 0, 0, 0.88) 44%,
+    rgba(0, 0, 0, 0.38) 78%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  content: "";
+}
+
+.tiktok-top-bar {
+  top: 42px;
+  right: 0;
+  left: 0;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 34px;
+  align-items: center;
+  height: 42px;
+  padding: 0 11px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.42), transparent);
+}
+
+.feed-icon-button {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  padding: 0;
+  color: rgba(255, 255, 255, 0.92);
+  background: transparent;
+  border: 0;
+}
+
+.nav-tabs {
+  justify-content: center;
+  gap: 12px;
+  min-width: 0;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.nav-tabs span {
+  position: relative;
+  flex: 0 0 auto;
+  padding: 8px 0 10px;
+}
+
+.nav-tabs .active {
+  font-weight: 700;
+}
+
+.nav-tabs .active::after {
+  position: absolute;
+  right: 2px;
+  bottom: 3px;
+  left: 2px;
+  height: 2px;
+  border-radius: 2px;
+  background: #ffffff;
+  content: "";
+}
+
+.tiktok-right-sidebar {
+  right: 10px;
+  bottom: 132px;
+  gap: 14px;
+  z-index: 22;
+  color: #ffffff;
+}
+
+.creator-avatar-wrap {
+  position: relative;
+  width: 48px;
+  height: 54px;
+  margin-bottom: 1px;
+}
+
+.creator-avatar {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.9);
+  background:
+    radial-gradient(circle at 34% 25%, rgba(255, 255, 255, 0.42), transparent 18%),
+    linear-gradient(145deg, #3b5f8f, #182033 58%, #2e9caa);
+  border: 2px solid rgba(255, 255, 255, 0.94);
+  border-radius: 50%;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+
+.follow-plus {
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  display: grid;
+  width: 19px;
+  height: 19px;
+  place-items: center;
+  color: #ffffff;
+  background: #fe2c55;
+  border: 0;
+  border-radius: 50%;
+  transform: translateX(-50%);
+}
+
+.sidebar-item {
+  gap: 3px;
+  min-width: 42px;
+}
+
+.sidebar-icon {
+  color: rgba(255, 255, 255, 0.96);
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.32));
+}
+
+.sidebar-item .count {
+  color: rgba(255, 255, 255, 0.94);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.1;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
+}
+
+.sound-item {
+  display: grid;
+  width: 43px;
+  height: 43px;
+  place-items: center;
+  margin-top: 2px;
+  color: #111827;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 50%;
+}
+
+.sound-item .sidebar-icon {
+  color: #111827;
+  filter: none;
+}
+
+.video-bottom-content {
+  position: absolute;
+  right: 58px;
+  bottom: 52px;
+  left: 14px;
+  z-index: 18;
+  padding: 0 0 10px;
+  color: #ffffff;
+  text-shadow: 0 1px 5px rgba(0, 0, 0, 0.7);
+}
+
+.creator-copy {
+  max-width: 265px;
+  padding-bottom: 10px;
+}
+
+.creator-copy strong {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.creator-copy p {
+  margin: 0 0 8px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.creator-copy span {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  max-width: 100%;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 10px;
+}
+
+.hot-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 34px;
+  margin: 0 -58px 0 -14px;
+  padding: 0 14px;
+  color: #ffd94a;
+  background: rgba(18, 18, 18, 0.86);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 10px;
+  text-shadow: none;
+}
+
+.hot-strip span:last-child {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.tiktok-bottom-nav {
+  height: 62px;
+  padding: 5px 8px 7px;
+  background: rgba(10, 10, 10, 0.96);
+  border-top-color: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(14px);
+}
+
+.bottom-nav-item {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  color: #8b8d95;
+  font-size: 10px;
+  line-height: 1;
+}
+
+.bottom-nav-item.active {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.bottom-nav-icon {
+  flex: 0 0 auto;
+}
+
+.plus-btn {
+  display: grid;
+  width: 48px;
+  height: 34px;
+  place-items: center;
+  padding: 0;
+  color: #101318;
+  background: #ffffff;
+  border-radius: 10px;
 }
 </style>

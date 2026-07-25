@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { ChevronLeft, ChevronRight, CircleCheck, Share2, Sparkles } from 'lucide-vue-next'
+import { ChevronLeft, ChevronRight, CircleCheck, Share2, Sparkles, Target } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 
 import { useSessionStore } from '../../app/store/session'
@@ -31,7 +31,20 @@ function selectRecommendation(product: RecommendationProduct) {
 </script>
 
 <template>
-  <section class="recommendation-page">
+  <section class="smartphone-app-shell recommendation-demo">
+    <div class="phone-frame">
+      <div class="dynamic-island"></div>
+
+      <div class="status-bar">
+        <span>12:51</span>
+        <div class="status-right">
+          <span>5G</span>
+          <span>73%</span>
+        </div>
+      </div>
+
+      <div class="recommendation-screen">
+        <section class="recommendation-page">
     <header class="recommendation-header">
       <button class="icon-button" type="button" aria-label="返回" @click="router.back()">
         <ChevronLeft :size="21" :stroke-width="1.8" />
@@ -63,19 +76,25 @@ function selectRecommendation(product: RecommendationProduct) {
     <main class="recommendation-list">
       <article v-for="product in recommendations" :key="product.product_id" class="recommendation-card">
         <div class="rank-label">TOP {{ product.rank }}</div>
-        <div class="recommendation-image">
-          <img v-if="product.image_url" :src="product.image_url" :alt="product.product_name" />
-          <span v-else aria-hidden="true">{{ product.product_name.slice(0, 1) }}</span>
-        </div>
-        <div class="recommendation-content">
-          <h2>{{ product.product_name }}</h2>
-          <span class="product-type">{{ product.product_tag }}</span>
-          <div class="score-line">
-            <span>推荐度</span>
-            <strong>{{ product.score }}%</strong>
+        <div class="recommendation-top">
+          <div class="recommendation-image">
+            <img v-if="product.image_url" :src="product.image_url" :alt="product.product_name" />
+            <span v-else aria-hidden="true">{{ product.product_name.slice(0, 1) }}</span>
           </div>
-          <h3>{{ product.reason }}</h3>
-          <p>{{ product.description }}</p>
+
+          <div class="recommendation-content">
+            <h2>{{ product.product_name }}</h2>
+            <span class="product-type">{{ product.product_tag }}</span>
+            <div class="score-line">
+              <span>推荐度</span>
+              <strong>{{ product.score }}%</strong>
+            </div>
+            <h3><Target :size="16" :stroke-width="1.8" /> <span>{{ product.reason }}</span></h3>
+            <p>{{ product.description }}</p>
+          </div>
+        </div>
+
+        <div class="recommendation-details">
           <div class="support-label"><CircleCheck :size="14" :stroke-width="1.9" /> 支持证据</div>
           <ul><li v-for="item in product.evidence" :key="item">{{ item }}</li></ul>
           <div class="source-line">数据来源：{{ product.source }}</div>
@@ -89,8 +108,10 @@ function selectRecommendation(product: RecommendationProduct) {
 
     <footer class="recommendation-footer">
       <button type="button" class="secondary-action" @click="router.push('/conditions')">继续筛选</button>
-      <button type="button" class="primary-action" @click="router.push('/conditions')">告诉 AI 新需求</button>
     </footer>
+        </section>
+      </div>
+    </div>
   </section>
 </template>
 
@@ -138,4 +159,428 @@ function selectRecommendation(product: RecommendationProduct) {
 .recommendation-footer { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
 .secondary-action, .primary-action { min-height: 38px; justify-content: center; }
 .secondary-action { color: #1784dd; background: transparent; border: 1px solid #4ca4ef; border-radius: 8px; font-size: 12px; }
+
+:global(.app-shell:has(.recommendation-demo) .topbar) {
+  display: none;
+}
+
+:global(.page-shell:has(.recommendation-demo)) {
+  max-width: none;
+  min-height: 100dvh;
+  padding: 0;
+  background: #040711;
+}
+
+.smartphone-app-shell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  padding: 16px 0;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background:
+    radial-gradient(circle at 50% 12%, rgba(56, 189, 248, 0.16), transparent 28%),
+    #040711;
+}
+
+.phone-frame {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 390px;
+  height: 844px;
+  overflow: hidden;
+  background: #000000;
+  border: 8px solid #1e293b;
+  border-radius: 40px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+}
+
+.dynamic-island {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  z-index: 99;
+  width: 110px;
+  height: 26px;
+  background: #000000;
+  border-radius: 18px;
+  transform: translateX(-50%);
+}
+
+.status-bar {
+  position: absolute;
+  top: 12px;
+  right: 24px;
+  left: 24px;
+  z-index: 98;
+  display: flex;
+  justify-content: space-between;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-right {
+  display: flex;
+  gap: 8px;
+}
+
+.recommendation-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% -4%, rgba(35, 211, 196, 0.16), transparent 30%),
+    linear-gradient(180deg, #07101c 0%, #050914 42%, #040711 100%);
+}
+
+.recommendation-page {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0 14px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.recommendation-page::-webkit-scrollbar {
+  display: none;
+}
+
+.recommendation-header {
+  position: sticky;
+  top: 0;
+  z-index: 80;
+  display: grid;
+  grid-template-columns: 36px 1fr 36px;
+  align-items: center;
+  margin: 0 -14px;
+  padding: 44px 14px 0;
+  min-height: 98px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(4, 7, 17, 0.99) 0%,
+      rgba(5, 9, 20, 0.98) 58%,
+      rgba(5, 9, 20, 0.82) 100%
+    );
+  backdrop-filter: blur(14px);
+}
+
+.recommendation-header::after {
+  position: absolute;
+  right: 0;
+  bottom: -34px;
+  left: 0;
+  height: 34px;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(5, 9, 20, 0.62), rgba(5, 9, 20, 0));
+  content: "";
+}
+
+.recommendation-header h1 {
+  color: #f8fafc;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.icon-button {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  color: #d7e3f0;
+  background: transparent;
+  border: 0;
+}
+
+.icon-button:last-child {
+  justify-self: end;
+}
+
+.ai-note,
+.requirements-summary {
+  border-color: rgba(105, 231, 220, 0.18);
+  background: rgba(15, 23, 42, 0.72);
+}
+
+.ai-note {
+  color: #b7c9dd;
+}
+
+.ai-note svg {
+  color: #69e7dc;
+}
+
+.requirements-summary {
+  background: rgba(11, 42, 48, 0.36);
+}
+
+.summary-heading,
+.support-label {
+  color: #dcecf3;
+}
+
+.summary-heading svg,
+.support-label svg {
+  color: #41d2bd;
+}
+
+.summary-items {
+  color: #8fa5bb;
+}
+
+.section-note {
+  color: #8498ad;
+}
+
+.recommendation-card {
+  color: #e8f1fb;
+  background: rgba(15, 23, 42, 0.74);
+  border-color: rgba(132, 112, 255, 0.2);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
+}
+
+.rank-label {
+  color: #f8f7ff;
+  background: #6659c7;
+}
+
+.recommendation-image {
+  color: #b8a3ff;
+  background: rgba(132, 112, 255, 0.1);
+  border: 1px solid rgba(132, 112, 255, 0.14);
+}
+
+.recommendation-content h2,
+.recommendation-content h3 {
+  color: #ffffff;
+}
+
+.product-type {
+  color: #b8a3ff;
+  background: rgba(132, 112, 255, 0.11);
+}
+
+.score-line {
+  color: #69e7dc;
+}
+
+.recommendation-content p,
+.recommendation-content li {
+  color: #8da0b7;
+}
+
+.source-line,
+.card-footer {
+  color: #8092a8;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.card-footer > span strong {
+  color: #ffc58b;
+}
+
+.card-footer button,
+.primary-action {
+  color: #061426;
+  background: linear-gradient(135deg, #69e7dc, #8ec1ff);
+  box-shadow: 0 8px 18px rgba(35, 211, 196, 0.16);
+}
+
+.recommendation-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 50;
+  margin: 16px -14px 0;
+  grid-template-columns: 1fr;
+  padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
+  background: rgba(4, 7, 17, 0.96);
+  border-top: 1px solid rgba(105, 231, 220, 0.12);
+  box-shadow: 0 -12px 28px rgba(0, 0, 0, 0.34);
+  backdrop-filter: blur(14px);
+}
+
+.secondary-action {
+  color: #8ec1ff;
+  background: transparent;
+  border-color: rgba(142, 193, 255, 0.42);
+}
+
+.recommendation-card {
+  display: block;
+}
+
+.recommendation-top {
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr);
+  gap: 13px;
+  align-items: start;
+}
+
+.recommendation-image {
+  width: 90px;
+  height: 120px;
+  border-radius: 11px;
+}
+
+.recommendation-details {
+  margin-top: 14px;
+}
+
+.recommendation-content h3 {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.recommendation-content h3 svg {
+  flex: 0 0 auto;
+  color: #69e7dc;
+}
+
+.recommendation-details .support-label {
+  margin-top: 0;
+}
+
+.recommendation-details .source-line {
+  margin-top: 10px;
+}
+
+.recommendation-details .card-footer {
+  margin-top: 10px;
+}
+
+/* Keep the card hierarchy compact: identity, recommendation, then supporting detail. */
+.recommendation-card {
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.recommendation-content h2 {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.product-type {
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+.score-line {
+  margin-top: 9px;
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.score-line strong {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.recommendation-content h3 {
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.recommendation-content p {
+  margin: 5px 0 0;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.recommendation-details .support-label {
+  gap: 6px;
+  color: #a5b5c8;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.recommendation-details .support-label svg {
+  width: 13px;
+  height: 13px;
+  color: #69e7dc;
+}
+
+.recommendation-details ul {
+  margin: 6px 0 0;
+  padding-left: 14px;
+}
+
+.recommendation-details li {
+  margin: 2px 0;
+  color: #8295ab;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.recommendation-details .source-line {
+  margin-top: 9px;
+  padding-top: 8px;
+  color: #74879d;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.recommendation-details .card-footer {
+  gap: 8px;
+  margin-top: 9px;
+  padding-top: 9px;
+  color: #a5b5c8;
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.recommendation-details .card-footer > span strong {
+  font-size: 17px;
+  line-height: 1;
+}
+
+.recommendation-details .card-footer button {
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+@media (max-width: 430px) {
+  .smartphone-app-shell {
+    padding: 0;
+  }
+
+  .phone-frame {
+    width: 100vw;
+    height: 100dvh;
+    border: 0;
+    border-radius: 0;
+  }
+}
+
+@media (max-width: 370px) {
+  .recommendation-top {
+    grid-template-columns: 78px minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .recommendation-image {
+    width: 78px;
+    height: 104px;
+  }
+
+  .card-footer {
+    flex-wrap: wrap;
+  }
+
+  .card-footer button {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+}
 </style>

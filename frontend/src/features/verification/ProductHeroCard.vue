@@ -95,10 +95,8 @@ defineProps<{
   font-size: 11px;
   font-weight: 400;
   line-height: 1.5;
-  white-space: nowrap;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 
 .tag-badge-row {
@@ -133,6 +131,9 @@ defineProps<{
     line-height: 1.48;
   }
 
+  .product-features {
+    width: 100%;
+  }
 }
 
 @media (max-width: 370px) {
@@ -150,5 +151,6 @@ defineProps<{
   .product-title {
     font-size: 13px;
   }
+
 }
 </style>
