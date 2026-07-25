@@ -85,7 +85,7 @@ $env:VISION_FRAME_DIR = "C:\path\to\video-frames"
 $env:OPENAI_VISION_CONTEXT = "可选的标题、OCR 字幕或转写文本"
 ```
 
-例如关键帧目录可以是 `C:\path\to\video-frames\video_demo\frame_01_005.0s.jpg`。模型不可用、帧目录缺失或超时时，接口自动回退到 Mock 识别。
+例如关键帧目录可以是 `C:\path\to\video-frames\demo_video_001\frame_01_005.0s.jpg`。模型不可用、帧目录缺失或超时时，接口自动回退到 Mock 识别。
 
 ## Mock 边界
 

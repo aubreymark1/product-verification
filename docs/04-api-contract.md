@@ -27,7 +27,7 @@
 输入：
 
 ```json
-{"video_id":"video_demo","timestamp":12.4,"selection":{"x":0.1,"y":0.2,"width":0.3,"height":0.2}}
+{"video_id":"demo_video_001","timestamp":12.4,"selection":{"x":0.1,"y":0.2,"width":0.3,"height":0.2}}
 ```
 
 返回 `category_id`、`category_name`、`visual_attributes` 和 `candidates[]`。候选项包含 `product_id`、`product_name`、`confidence`、`image_url`；此处 `confidence` 仅表示视觉候选匹配强度。
@@ -42,9 +42,9 @@
 
 ```json
 {
-  "video_id":"video_demo",
-  "product_id":"product_demo_001",
-  "category_id":"category_demo",
+  "video_id":"demo_video_001",
+  "product_id":"atk_a9_ultimate",
+  "category_id":"gaming_mouse",
   "conditions":{},
   "raw_query":"预算适中，主要用于日常办公",
   "input_mode":"text"
@@ -70,9 +70,9 @@
 
 ```json
 {
-  "video_id":"video_demo",
-  "product_id":"product_demo_001",
-  "category_id":"category_demo",
+  "video_id":"demo_video_001",
+  "product_id":"atk_a9_ultimate",
+  "category_id":"gaming_mouse",
   "previous_result_id":"result_demo_001",
   "dissatisfaction_reasons":["预算不合适"],
   "dissatisfaction_note":"希望更轻便",

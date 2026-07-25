@@ -8,7 +8,7 @@ from app.services.vision.service import VisionService
 
 class FakeFrameSource:
     def frames_for(self, video_id: str) -> list[FrameReference]:
-        assert video_id == "video_demo"
+        assert video_id == "demo_video_001"
         return [FrameReference(Path("frame_01_005.0s.jpg"), 5.0)]
 
 
@@ -28,9 +28,9 @@ def test_identify_uses_real_multimodal_result_when_frames_are_available() -> Non
     service = VisionService(provider=FakeVisionProvider(), frame_source=FakeFrameSource())  # type: ignore[arg-type]
     result = service.identify(
         SelectionRequest(
-            video_id="video_demo",
+            video_id="demo_video_001",
             timestamp=5.0,
-            selection={"x": 0.22, "y": 0.25, "width": 0.38, "height": 0.34},
+            selection={"x": 0.45, "y": 0.55, "width": 0.1, "height": 0.15},
         )
     )
     assert result.visual_attributes["recognition_mode"] == "openai_multimodal"

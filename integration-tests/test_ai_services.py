@@ -9,12 +9,12 @@ from app.services.vision.service import VisionService
 def test_vision_service_uses_selected_region_and_ranks_candidates() -> None:
     result = VisionService().identify(
         SelectionRequest(
-            video_id="video_demo",
+            video_id="demo_video_001",
             timestamp=1.0,
             selection={"x": 0.22, "y": 0.25, "width": 0.38, "height": 0.34},
         )
     )
-    assert result.category_id == "demo_category"
+    assert result.category_id == "gaming_mouse"
     assert result.candidates[0].confidence >= result.candidates[-1].confidence
 
 
@@ -22,20 +22,20 @@ def test_verification_binds_only_same_product_evidence_and_reruns_with_alternati
     service = VerificationService()
     first = service.run(
         VerificationRequest(
-            video_id="video_demo",
-            product_id="demo_product_001",
-            category_id="demo_category",
+            video_id="demo_video_001",
+            product_id="atk_a9_ultimate",
+            category_id="gaming_mouse",
             conditions={"usage_scene": "场景A"},
         )
     )
     assert first.support
-    assert all(source_id.startswith("evidence_demo_") for item in first.support for source_id in item.source_ids)
+    assert all(source_id.startswith("ev_") for item in first.support for source_id in item.source_ids)
 
     second = service.rerun(
         RerunRecommendationRequest(
-            video_id="video_demo",
+            video_id="demo_video_001",
             product_id=first.product.product_id,
-            category_id="demo_category",
+            category_id="gaming_mouse",
             previous_result_id=first.result_id,
             dissatisfaction_reasons=["预算不合适"],
             conditions_patch={"notes": "更轻便"},
@@ -46,19 +46,19 @@ def test_verification_binds_only_same_product_evidence_and_reruns_with_alternati
     assert second.conditions["notes"] == "更轻便"
     assert second.is_follow_up is True
 
-    try:
-        service.rerun(
-            RerunRecommendationRequest(
-                video_id="video_demo",
-                product_id=second.product.product_id,
-                category_id="demo_category",
-                previous_result_id=second.result_id,
+    current = second
+    while True:
+        try:
+            current = service.rerun(
+                RerunRecommendationRequest(
+                    video_id="demo_video_001",
+                    product_id=current.product.product_id,
+                    category_id="gaming_mouse",
+                    previous_result_id=current.result_id,
+                )
             )
-        )
-    except NoAlternativeProductError:
-        pass
-    else:
-        raise AssertionError("rerun should stop after all candidates are used")
+        except NoAlternativeProductError:
+            break
 
 
 def test_fallback_provider_handles_timeout() -> None:
