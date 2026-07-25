@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 RelationLevel = Literal["exact_product", "likely_same_product", "similar_product"]
 SourceType = Literal["official", "professional_test", "user_feedback", "demo_mock"]
 FieldType = Literal["single_select", "multi_select", "number", "text", "boolean"]
+PurchaseChannelType = Literal["official", "marketplace", "retail", "other"]
 
 
 class ApiError(BaseModel):
@@ -136,6 +137,18 @@ class ComparisonResult(BaseModel):
     product_ids: list[str]
     status: Literal["placeholder"]
     message: str
+
+
+# ── 购买渠道 ───────────────────────────
+
+class PurchaseChannel(BaseModel):
+    channel_id: str
+    product_id: str
+    channel_name: str
+    channel_type: PurchaseChannelType
+    url: str | None = None
+    availability: Literal["available", "pending", "placeholder"] = "placeholder"
+    note: str = ""
 
 
 # ── 商品事实模型（成员C：品类无关，避免写死具体字段）──
