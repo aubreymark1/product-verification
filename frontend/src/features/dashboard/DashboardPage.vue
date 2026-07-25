@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, type Ref } from 'vue'
 import { api } from '../../services/api'
 
 // ── 状态 ──
-const health = ref<any>(null)
-const video = ref<any>(null)
-const identify = ref<any>(null)
-const profile = ref<any>(null)
-const verification = ref<any>(null)
-const evidence = ref<any>(null)
-const comparison = ref<any>(null)
-const searchResult = ref<any>(null)
+const health = ref<unknown>(null)
+const video = ref<unknown>(null)
+const identify = ref<unknown>(null)
+const profile = ref<unknown>(null)
+const verification = ref<unknown>(null)
+const evidence = ref<unknown>(null)
+const comparison = ref<unknown>(null)
+const searchResult = ref<unknown>(null)
 
 const loading: Record<string, boolean> = {
   health: false, video: false, identify: false, profile: false,
@@ -18,9 +18,9 @@ const loading: Record<string, boolean> = {
 }
 const errors: Record<string, string> = {}
 
-async function call(name: string, fn: () => Promise<any>, target: any) {
+async function call<T>(name: string, fn: () => Promise<T>, target: Ref<T | null>) {
   loading[name] = true; errors[name] = ''
-  try { target.value = await fn() } catch (e: any) { errors[name] = e.message } finally { loading[name] = false }
+  try { target.value = await fn() } catch (error: unknown) { errors[name] = error instanceof Error ? error.message : String(error) } finally { loading[name] = false }
 }
 
 // ── 批量测试 ──
