@@ -1,31 +1,52 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-
+import { onMounted, ref, watch } from 'vue'
+import { ChevronRight, ShoppingCart, X } from 'lucide-vue-next'
+import { useRouter } from 'vue-router'
 import { useSessionStore } from '../../app/store/session'
 import { api } from '../../services/api'
-import type { PurchaseChannel } from '../../types/api'
 
+const router = useRouter()
+const session = useSessionStore()
 const showChannelsModal = ref(false)
 
-const channels = ref<PurchaseChannel[]>([])
-const loading = ref(false)
-const error = ref('')
-const session = useSessionStore()
+const emit = defineEmits<{
+  navigate: []
+}>()
 
-onMounted(async () => {
-  if (!session.selectedProduct) return
-  loading.value = true
-  try {
-    channels.value = await api.getPurchaseChannels(session.selectedProduct.product_id)
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : '购买渠道加载失败'
-  } finally {
-    loading.value = false
+interface DisplayChannel {
+  platform: string
+  price: string
+  tag: string
+}
+
+const channels = ref<DisplayChannel[]>([])
+
+async function loadChannels() {
+  const productId = session.selectedProduct?.product_id
+  if (!productId) {
+    channels.value = []
+    return
   }
-})
 
+  try {
+    const result = await api.getPurchaseChannels(productId)
+    channels.value = result.map((channel) => ({
+      platform: channel.channel_name,
+      price: "待确认",
+      tag: channel.availability === "available" ? "可购买" : channel.note || "待确认",
+    }))
+  } catch (error) {
+    channels.value = []
+    console.warn("闁荤姵鍔﹂崢娲箯閸楃偑鈧帡鎮╃拋鍐差棜闂佸憡姊绘慨鎯归崶銊ョ窞閺夊牜鍋夎", error)
+  }
+}
+
+
+onMounted(() => { void loadChannels() })
+watch(() => session.selectedProduct?.product_id, () => { void loadChannels() })
 function openModal() {
-  showChannelsModal.value = true
+  emit('navigate')
+  router.push('/price-comparison')
 }
 
 function closeModal() {
@@ -39,29 +60,25 @@ function closeModal() {
     <div class="purple-glow-card" @click="openModal">
       <div class="card-left-section">
         <div class="cart-icon-box">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="9" cy="21" r="1"></circle>
-            <circle cx="20" cy="21" r="1"></circle>
-            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-          </svg>
+          <ShoppingCart :size="19" :stroke-width="1.8" />
         </div>
         <div class="text-group">
           <div class="title-row">
             <span class="main-title">查看全网低价</span>
-            <span class="arrow-sym">&gt;</span>
+            <ChevronRight class="arrow-sym" :size="15" :stroke-width="1.8" />
           </div>
-          <span class="sub-title">汇总多渠道价格，帮你省更多</span>
+          <span class="sub-title">低价快比，放心买</span>
         </div>
       </div>
 
       <div class="card-right-section">
         <div class="platform-badges-row">
-          <span class="badge tmall">天猫</span>
-          <span class="badge xianyu">得物</span>
-          <span class="badge tiktok">抖音</span>
-          <span class="badge pdd">拼多</span>
+          <span class="app-icon app-icon--tmall" aria-label="天猫"></span>
+          <span class="app-icon app-icon--jd" aria-label="京东"></span>
+          <span class="summary-text">{{ channels.length }}源比价</span>
+          <span class="app-icon app-icon--douyin" aria-label="抖音"></span>
+          <span class="app-icon app-icon--pdd" aria-label="拼多多"></span>
         </div>
-        <span class="summary-text">已汇总 12 个渠道低价</span>
       </div>
     </div>
 
@@ -70,24 +87,23 @@ function closeModal() {
       <div class="channel-modal">
         <div class="modal-header">
           <div>
-            <h3>全网比价汇总 (12个渠道)</h3>
-            <span class="demo-tag">演示数据，仅用于功能展示</span>
+            <h3>全网比价汇总（{{ channels.length }}个渠道）</h3>
+            <span class="demo-tag">已配置渠道数据</span>
           </div>
-          <button class="close-btn" @click="closeModal">✕</button>
+          <button class="close-btn" aria-label="关闭" @click="closeModal">
+            <X :size="18" :stroke-width="1.8" />
+          </button>
         </div>
 
         <div class="channel-list">
-          <div v-if="loading" class="channel-empty">正在读取已接入的购买渠道…</div>
-          <div v-else-if="error" class="channel-empty">{{ error }}</div>
-          <div v-else-if="!channels.length" class="channel-empty">当前暂无可用购买渠道（演示数据）</div>
-          <div v-for="c in channels" v-else :key="c.channel_id" class="channel-item">
+          <div v-for="c in channels" :key="c.platform" class="channel-item">
             <div class="item-meta">
-              <span class="platform-name">{{ c.channel_name }}</span>
-              <span class="tag-chip">{{ c.availability }}</span>
+              <span class="platform-name">{{ c.platform }}</span>
+              <span class="tag-chip">{{ c.tag }}</span>
             </div>
             <div class="item-price">
-              <span class="price-val">{{ c.note || '暂无价格信息' }}</span>
-              <button class="buy-btn" :disabled="!c.url" @click="closeModal">{{ c.url ? '前往' : '暂不可用' }}</button>
+              <span class="price-val">{{ c.price }}</span>
+              <button class="buy-btn" @click="closeModal">前往</button>
             </div>
           </div>
         </div>
@@ -104,35 +120,87 @@ function closeModal() {
 }
 
 .purple-glow-card {
+  position: relative;
+  overflow: hidden;
   display: flex;
+  gap: 8px;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(135deg, rgba(88, 28, 135, 0.7), rgba(30, 64, 175, 0.7));
-  border: 1.5px solid rgba(168, 85, 247, 0.5);
-  border-radius: 10px;
-  padding: 14px 16px;
+  background:
+    radial-gradient(circle at 0% 50%, rgba(137, 65, 255, 0.18), transparent 42%),
+    rgba(13, 24, 38, 0.82);
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background-clip: padding-box;
+  padding: 16px 12px;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(126, 34, 206, 0.35);
+  box-shadow:
+    inset 0 0 16px rgba(166, 132, 255, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 0 18px rgba(164, 70, 255, 0.3),
+    0 0 26px rgba(31, 119, 255, 0.22),
+    0 8px 18px rgba(0, 0, 0, 0.14);
   transition: all 0.2s ease;
 }
 
+.purple-glow-card::before {
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  pointer-events: none;
+  background: linear-gradient(105deg, #a744ff 0%, #7d42ff 34%, #1f7dff 72%, #2da9ff 100%);
+  border-radius: 14px;
+  content: "";
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+}
+
+.purple-glow-card::after {
+  position: absolute;
+  inset: 1px;
+  pointer-events: none;
+  border: 1px solid rgba(138, 92, 246, 0.14);
+  border-radius: 13px;
+  box-shadow:
+    inset 8px 0 20px rgba(164, 70, 255, 0.12),
+    inset -8px 0 20px rgba(31, 125, 255, 0.1),
+    0 0 24px rgba(164, 70, 255, 0.2),
+    0 0 30px rgba(31, 125, 255, 0.16);
+  content: "";
+}
+
 .purple-glow-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(126, 34, 206, 0.5);
-  border-color: rgba(168, 85, 247, 0.8);
+  background: rgba(18, 31, 49, 0.88);
+  box-shadow:
+    inset 0 0 16px rgba(166, 132, 255, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 0 22px rgba(164, 70, 255, 0.38),
+    0 0 32px rgba(31, 119, 255, 0.28),
+    0 8px 18px rgba(0, 0, 0, 0.14);
 }
 
 .card-left-section {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  min-width: max-content;
 }
 
 .cart-icon-box {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #7c3aed, #2563eb);
+  background: transparent;
+  border: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -142,59 +210,221 @@ function closeModal() {
 .text-group {
   display: flex;
   flex-direction: column;
+  min-width: max-content;
 }
 
 .title-row {
   display: flex;
   align-items: center;
   gap: 4px;
+  min-width: max-content;
 }
 
 .main-title {
+  flex: 0 0 auto;
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 500;
   color: #ffffff;
+  white-space: nowrap;
 }
 
 .arrow-sym {
-  font-size: 13px;
   color: #c084fc;
 }
 
 .sub-title {
+  display: block;
+  max-width: 118px;
+  overflow: hidden;
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.7);
-  margin-top: 2px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.52);
+  margin-top: 6px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .card-right-section {
+  position: relative;
+  z-index: 1;
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
   align-items: flex-end;
   gap: 4px;
+  min-width: 0;
 }
 
 .platform-badges-row {
   display: flex;
-  gap: 4px;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  overflow: hidden;
 }
 
-.badge {
-  font-size: 9px;
-  font-weight: 700;
-  padding: 2px 5px;
-  border-radius: 4px;
-  color: #ffffff;
+.app-icon {
+  position: relative;
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  overflow: hidden;
+  border-radius: 6px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 4px 10px rgba(0, 0, 0, 0.22);
 }
 
-.tmall { background: #ff0036; }
-.xianyu { background: #00b2ff; }
-.tiktok { background: #161823; }
-.pdd { background: #e02e24; }
+.app-icon--tmall {
+  background: linear-gradient(145deg, #ff3150, #c8002b);
+}
+
+.app-icon--tmall::before {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  width: 12px;
+  height: 10px;
+  background: #fff;
+  border-radius: 6px 6px 4px 4px;
+  clip-path: polygon(0 30%, 17% 0, 32% 28%, 68% 28%, 83% 0, 100% 30%, 100% 100%, 0 100%);
+  content: "";
+}
+
+.app-icon--tmall::after {
+  position: absolute;
+  top: 10px;
+  left: 8px;
+  width: 2px;
+  height: 2px;
+  background: #c8002b;
+  border-radius: 50%;
+  box-shadow: 5px 0 0 #c8002b;
+  content: "";
+}
+
+.app-icon--jd {
+  background: linear-gradient(145deg, #f7f7fb, #dfe5f0);
+}
+
+.app-icon--jd::before {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  width: 12px;
+  height: 12px;
+  background: #d71024;
+  border-radius: 50%;
+  content: "";
+}
+
+.app-icon--jd::after {
+  position: absolute;
+  top: 9px;
+  left: 9px;
+  width: 4px;
+  height: 4px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 -5px 0 -1px #d71024, 5px -2px 0 -1px #d71024;
+  content: "";
+}
+
+.app-icon--douyin {
+  background: #05070b;
+}
+
+.app-icon--douyin::before {
+  position: absolute;
+  top: 4px;
+  left: 8px;
+  width: 7px;
+  height: 12px;
+  border-right: 3px solid #fff;
+  border-bottom: 3px solid #fff;
+  border-radius: 0 0 7px 7px;
+  box-shadow:
+    -2px 1px 0 #00f2ea,
+    2px -1px 0 #ff0050;
+  content: "";
+}
+
+.app-icon--douyin::after {
+  position: absolute;
+  top: 12px;
+  left: 5px;
+  width: 7px;
+  height: 7px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow:
+    -1px 1px 0 #00f2ea,
+    1px -1px 0 #ff0050;
+  content: "";
+}
+
+.app-icon--pdd {
+  background: linear-gradient(145deg, #ff4c5d, #d9192f);
+}
+
+.app-icon--pdd::before {
+  position: absolute;
+  inset: 5px;
+  background:
+    linear-gradient(45deg, transparent 40%, #fff 42% 58%, transparent 60%),
+    linear-gradient(-45deg, transparent 40%, #fff 42% 58%, transparent 60%);
+  border: 2px solid #fff;
+  border-radius: 3px;
+  transform: rotate(45deg);
+  content: "";
+}
 
 .summary-text {
+  flex: 0 0 auto;
+  padding: 3px 6px;
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+  line-height: 1;
+  color: rgba(230, 236, 255, 0.82);
+  white-space: nowrap;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(166, 132, 255, 0.16);
+  border-radius: 999px;
+}
+
+@media (max-width: 380px) {
+  .purple-glow-card {
+    padding: 14px 11px;
+  }
+
+  .cart-icon-box {
+    width: 40px;
+    height: 40px;
+  }
+
+  .sub-title {
+    max-width: 104px;
+  }
+
+  .summary-text {
+    display: none;
+  }
+}
+
+@media (max-width: 370px) {
+  .card-right-section {
+    display: none;
+  }
+
+  .sub-title {
+    max-width: 160px;
+  }
+}
+
+@media (max-width: 350px) {
+  .sub-title {
+    max-width: 136px;
+  }
 }
 
 /* Modal */
@@ -232,18 +462,23 @@ function closeModal() {
 .modal-header h3 {
   margin: 0 0 2px;
   font-size: 15px;
+  font-weight: 600;
 }
 
 .demo-tag {
-  font-size: 10px;
+  font-size: 11px;
+  font-weight: 400;
   color: #64748b;
 }
 
 .close-btn {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
   background: none;
   border: none;
   color: #64748b;
-  font-size: 16px;
   cursor: pointer;
 }
 
@@ -274,7 +509,8 @@ function closeModal() {
 }
 
 .tag-chip {
-  font-size: 10px;
+  font-size: 12px;
+  font-weight: 400;
   color: #38bdf8;
 }
 
@@ -286,7 +522,7 @@ function closeModal() {
 
 .price-val {
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 600;
   color: #f43f5e;
 }
 
@@ -297,6 +533,7 @@ function closeModal() {
   padding: 4px 10px;
   border-radius: 6px;
   font-size: 11px;
+  font-weight: 500;
   cursor: pointer;
 }
 
@@ -308,6 +545,7 @@ function closeModal() {
   border-radius: 8px;
   color: #94a3b8;
   font-size: 12px;
+  font-weight: 500;
   cursor: pointer;
 }
 </style>

@@ -7,6 +7,9 @@ RelationLevel = Literal["exact_product", "likely_same_product", "similar_product
 SourceType = Literal["official", "professional_test", "user_feedback", "demo_mock"]
 FieldType = Literal["single_select", "multi_select", "number", "text", "boolean"]
 PurchaseChannelType = Literal["official", "marketplace", "retail", "other"]
+RequirementPriority = Literal["must", "important", "preference"]
+MatchStatus = Literal["satisfied", "conflict", "unknown"]
+AnalysisMode = Literal["ai", "rule", "degraded"]
 
 
 class ApiError(BaseModel):
@@ -53,6 +56,9 @@ class CandidateProduct(BaseModel):
     product_name: str
     confidence: float = Field(ge=0, le=1)
     image_url: str | None = None
+    image_source_url: str | None = None
+    image_source_name: str | None = None
+    image_fetched_at: str | None = None
 
 
 class IdentifyResult(BaseModel):
@@ -108,6 +114,44 @@ class RecommendationDimension(BaseModel):
     source_ids: list[str] = Field(default_factory=list)
 
 
+class ProductFact(BaseModel):
+    fact_id: str
+    key: str
+    label: str
+    value: str
+    source_ids: list[str] = Field(min_length=1)
+    confidence: float = Field(ge=0, le=1)
+
+
+class RequirementAnalysisItem(BaseModel):
+    requirement_id: str
+    key: str
+    label: str
+    value: str
+    priority: RequirementPriority
+    weight: float = Field(gt=0, le=1)
+    status: MatchStatus
+    rationale: str
+    product_facts: list[ProductFact] = Field(default_factory=list)
+    source_ids: list[str] = Field(default_factory=list)
+
+
+class DecisionTrace(BaseModel):
+    requirement_id: str
+    requirement: str
+    fact_ids: list[str] = Field(default_factory=list)
+    source_ids: list[str] = Field(default_factory=list)
+    status: MatchStatus
+    conclusion: str
+
+
+class UnknownItem(BaseModel):
+    requirement_id: str
+    label: str
+    reason: str
+    needed_evidence: str
+
+
 class PurchaseChannel(BaseModel):
     channel_id: str
     product_id: str
@@ -128,6 +172,12 @@ class VerificationResult(BaseModel):
     needs_inherited: bool = False
     recommendation_score: float = Field(default=0, ge=0, le=1)
     recommendation_basis: list[RecommendationDimension] = Field(default_factory=list)
+    requirement_analysis: list[RequirementAnalysisItem] = Field(default_factory=list)
+    product_facts: list[ProductFact] = Field(default_factory=list)
+    decision_chain: list[DecisionTrace] = Field(default_factory=list)
+    unknown_items: list[UnknownItem] = Field(default_factory=list)
+    analysis_mode: AnalysisMode = "rule"
+    change_summary: str = ""
     summary: str
     support: list[Conclusion]
     risks: list[Conclusion]

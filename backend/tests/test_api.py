@@ -71,6 +71,27 @@ def test_unknown_entity_returns_api_error() -> None:
     assert response.json()["error"]["code"] == "NOT_FOUND"
 
 
+def test_video_upload_returns_safe_video_metadata() -> None:
+    response = client.post(
+        "/api/videos/upload",
+        files={"file": ("sample.mp4", b"not-a-decoded-video", "video/mp4")},
+    )
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert data["video_id"].startswith("upload_")
+    assert data["video_url"].startswith("/uploads/")
+    assert data["objects"] == []
+
+
+def test_video_upload_rejects_non_video_extension() -> None:
+    response = client.post(
+        "/api/videos/upload",
+        files={"file": ("sample.txt", b"not-a-video", "text/plain")},
+    )
+    assert response.status_code == 400
+    assert response.json()["error"]["code"] == "INVALID_VIDEO_UPLOAD"
+
+
 # ── 成员C 新增测试 ──
 
 def test_evidence_detail_returns_valid() -> None:

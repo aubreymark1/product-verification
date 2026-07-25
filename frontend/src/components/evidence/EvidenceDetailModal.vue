@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ExternalLink, FileSearch, X } from 'lucide-vue-next'
+
 import type { Evidence } from '../../types/api'
 
 defineProps<{
@@ -13,47 +15,56 @@ const emit = defineEmits<{
 <template>
   <div v-if="evidence" class="modal-backdrop" @click.self="emit('close')">
     <div class="evidence-detail-card">
-      <!-- Top header -->
       <div class="card-header">
-        <div class="source-badge-row">
-          <span class="source-type-tag">{{ evidence.source_type }}</span>
-          <span class="relation-level-tag">{{ evidence.relation_level }}</span>
-          <span class="demo-tag">演示数据，仅用于功能展示</span>
+        <div class="source-title-group">
+          <div class="source-icon">
+            <FileSearch :size="18" :stroke-width="1.8" />
+          </div>
+          <div class="source-badge-row">
+            <span class="source-type-tag">{{ evidence.source_type }}</span>
+            <span class="relation-level-tag">{{ evidence.relation_level }}</span>
+            <span class="demo-tag">演示数据，仅用于功能展示</span>
+          </div>
         </div>
-        <button class="close-icon-btn" @click="emit('close')">✕</button>
+        <button class="close-icon-btn" aria-label="关闭" @click="emit('close')">
+          <X :size="18" :stroke-width="1.8" />
+        </button>
       </div>
 
-      <!-- Title & Summary -->
-      <h3 class="evidence-title">{{ evidence.source_title }}</h3>
-      <p class="evidence-summary">{{ evidence.summary }}</p>
+      <div class="detail-scroll-body">
+        <h3 class="evidence-title">{{ evidence.source_title }}</h3>
+        <p class="evidence-summary">{{ evidence.summary }}</p>
 
-      <!-- Content quote box -->
-      <div class="quote-box">
-        <span class="quote-mark left">“</span>
-        <p class="quote-text">{{ evidence.content }}</p>
-        <span class="quote-mark right">”</span>
-      </div>
-
-      <!-- Source Meta Footer -->
-      <div class="meta-footer">
-        <div class="meta-left">
-          <span>来源：{{ evidence.source_platform }}</span>
-          <span v-if="evidence.published_at">· {{ evidence.published_at }}</span>
-          <span>· 点赞 86</span>
+        <div class="quote-box">
+          <span class="quote-mark left">“</span>
+          <p class="quote-text">{{ evidence.content }}</p>
+          <span class="quote-mark right">”</span>
         </div>
-        <a
-          v-if="evidence.source_url"
-          :href="evidence.source_url"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="source-link-btn"
-        >
-          查看原评论 &gt;
-        </a>
-        <span v-else class="source-link-btn disabled">查看原评论 &gt;</span>
-      </div>
 
-      <button class="modal-primary-btn" @click="emit('close')">知道了</button>
+        <div class="meta-footer">
+          <div class="meta-left">
+            <span>来源：{{ evidence.source_platform }}</span>
+            <span v-if="evidence.published_at">· {{ evidence.published_at }}</span>
+            <span>· 点赞 86</span>
+          </div>
+          <a
+            v-if="evidence.source_url"
+            :href="evidence.source_url"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="source-link-btn"
+          >
+            <span>查看原评论</span>
+            <ExternalLink :size="15" :stroke-width="1.8" />
+          </a>
+          <span v-else class="source-link-btn disabled">
+            <span>查看原评论</span>
+            <ExternalLink :size="15" :stroke-width="1.8" />
+          </span>
+        </div>
+
+        <button class="modal-primary-btn" @click="emit('close')">知道了</button>
+      </div>
     </div>
   </div>
 </template>
@@ -66,30 +77,69 @@ const emit = defineEmits<{
   backdrop-filter: blur(8px);
   z-index: 100;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: 20px;
+  padding: 96px 0 0;
 }
 
 .evidence-detail-card {
   width: 100%;
-  max-width: 540px;
-  background: rgba(15, 23, 42, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 20px;
-  padding: 24px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  max-width: 430px;
+  max-height: calc(100vh - 96px);
+  background: rgba(9, 20, 32, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-bottom: 0;
+  border-radius: 24px 24px 0 0;
+  padding: 0;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    0 18px 42px rgba(0, 0, 0, 0.38);
   display: flex;
   flex-direction: column;
-  gap: 16px;
   box-sizing: border-box;
   animation: modalIn 0.25s ease-out;
 }
 
 .card-header {
+  min-height: 72px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
+  padding: 18px 18px 14px;
+  flex: 0 0 72px;
+}
+
+.detail-scroll-body {
+  overflow-y: auto;
+  scrollbar-width: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0 18px 20px;
+}
+
+.detail-scroll-body::-webkit-scrollbar {
+  display: none;
+}
+
+.source-title-group {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.source-icon {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  display: grid;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
 }
 
 .source-badge-row {
@@ -101,18 +151,18 @@ const emit = defineEmits<{
 
 .source-type-tag {
   font-size: 11px;
-  background: rgba(56, 189, 248, 0.15);
-  color: #38bdf8;
-  border: 1px solid rgba(56, 189, 248, 0.3);
+  background: rgba(255, 255, 255, 0.045);
+  color: rgba(255, 255, 255, 0.68);
+  border: 1px solid rgba(255, 255, 255, 0.07);
   padding: 2px 8px;
   border-radius: 10px;
 }
 
 .relation-level-tag {
   font-size: 11px;
-  background: rgba(16, 185, 129, 0.15);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: rgba(255, 255, 255, 0.045);
+  color: rgba(255, 255, 255, 0.64);
+  border: 1px solid rgba(255, 255, 255, 0.07);
   padding: 2px 8px;
   border-radius: 10px;
 }
@@ -123,16 +173,19 @@ const emit = defineEmits<{
 }
 
 .close-icon-btn {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
   background: none;
   border: none;
   color: #94a3b8;
-  font-size: 18px;
   cursor: pointer;
 }
 
 .evidence-title {
-  font-size: 18px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 600;
   color: #f8fafc;
   margin: 0;
 }
@@ -142,27 +195,28 @@ const emit = defineEmits<{
   color: #cbd5e1;
   margin: 0;
   line-height: 1.5;
+  font-weight: 400;
 }
 
 .quote-box {
   position: relative;
-  background: rgba(30, 41, 59, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.055);
   border-radius: 12px;
   padding: 16px 20px;
 }
 
 .quote-text {
   font-size: 13px;
-  color: #e2e8f0;
-  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.65;
   margin: 0;
 }
 
 .quote-mark {
   font-size: 24px;
-  color: #38bdf8;
-  font-weight: 800;
+  color: rgba(255, 255, 255, 0.2);
+  font-weight: 400;
 }
 
 .quote-mark.left {
@@ -179,17 +233,22 @@ const emit = defineEmits<{
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
   font-size: 12px;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.42);
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   padding-top: 12px;
 }
 
 .source-link-btn {
-  color: #38bdf8;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  color: #5aa7ff;
   text-decoration: none;
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .source-link-btn.disabled {
@@ -204,12 +263,13 @@ const emit = defineEmits<{
   border: none;
   background: #2563eb;
   color: white;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
 }
 
 @keyframes modalIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 </style>

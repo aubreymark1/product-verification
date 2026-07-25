@@ -19,8 +19,11 @@ onMounted(() => {
   }, 1200)
 
   progressTimer = window.setInterval(() => {
-    if (progressPercent.value < 95) {
-      progressPercent.value += Math.floor(Math.random() * 10) + 5
+    if (progressPercent.value < 100) {
+      progressPercent.value = Math.min(
+        100,
+        progressPercent.value + Math.floor(Math.random() * 10) + 5,
+      )
     }
   }, 300)
 })
@@ -78,9 +81,9 @@ onUnmounted(() => {
 .orb-core {
   width: 32px;
   height: 32px;
-  background: radial-gradient(circle, #38bdf8, #0284c7);
+  background: radial-gradient(circle, rgba(105, 231, 220, 0.92), rgba(8, 74, 87, 0.96));
   border-radius: 50%;
-  box-shadow: 0 0 24px #38bdf8;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.24);
   animation: pulse 1.8s infinite ease-in-out;
 }
 
@@ -115,10 +118,10 @@ onUnmounted(() => {
 
 .loading-title {
   font-size: 20px;
-  font-weight: 700;
+  font-weight: 600;
   color: #f8fafc;
   margin: 0 0 8px;
-  background: linear-gradient(90deg, #38bdf8, #818cf8);
+  background: linear-gradient(90deg, #69e7dc, #8bb7ff);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -141,17 +144,16 @@ onUnmounted(() => {
 
 .progress-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, #06b6d4, #3b82f6);
+  background: linear-gradient(90deg, rgba(35, 211, 196, 0.86), rgba(90, 167, 255, 0.8));
   border-radius: 4px;
   transition: width 0.3s ease;
-  box-shadow: 0 0 10px #06b6d4;
 }
 
 .percent-label {
   font-size: 12px;
   color: #38bdf8;
   margin-top: 8px;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 @keyframes spin {
@@ -165,7 +167,7 @@ onUnmounted(() => {
 }
 
 @keyframes pulse {
-  0%, 100% { transform: scale(0.9); opacity: 0.8; }
-  50% { transform: scale(1.15); opacity: 1; }
+  0%, 100% { opacity: 0.82; }
+  50% { opacity: 1; }
 }
 </style>

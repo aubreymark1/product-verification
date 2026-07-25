@@ -87,6 +87,25 @@ $env:OPENAI_VISION_CONTEXT = "可选的标题、OCR 字幕或转写文本"
 
 例如关键帧目录可以是 `C:\path\to\video-frames\demo_video_001\frame_01_005.0s.jpg`。模型不可用、帧目录缺失或超时时，接口自动回退到 Mock 识别。
 
+需求匹配默认使用证据约束规则，逐项输出 `satisfied`、`conflict` 或 `unknown`。如需启用模型增强解释，可设置：
+
+```powershell
+$env:OPENAI_VERIFICATION_ENABLED = "true"
+```
+
+模型只能改写服务端已确定的解释，不能改变匹配状态、补充商品事实或引用未提供的 `source_ids`。调用超时、异常或结构化输出校验失败时，结果的 `analysis_mode` 为 `degraded`，并明确提示已使用规则降级；未启用模型时为 `rule`。
+
+商品缩略图联网检索默认关闭。接入 Tavily 时，请将密钥只放在本地 `.env` 或运行环境变量中，不要提交到仓库：
+
+```powershell
+$env:PRODUCT_IMAGE_SEARCH_ENABLED = "true"
+$env:PRODUCT_IMAGE_SEARCH_PROVIDER = "tavily"
+$env:PRODUCT_IMAGE_SEARCH_BASE_URL = "https://api.tavily.com/search"
+$env:PRODUCT_IMAGE_SEARCH_API_KEY = "<your-tavily-key>"
+```
+
+图片仅用于缩略图展示；检索失败时返回 `image_url = null`，不会影响商品事实和证据检索。
+
 ## Mock 边界
 
 现有 JSON 保留联调降级能力；新增模板不代表真实评论、测评、商品参数、价格或外部来源。负责人采集时请遵守 [`docs/08-mock-data-guide.md`](docs/08-mock-data-guide.md)，每条证据必须有稳定编号和来源关系，不能伪造引用。

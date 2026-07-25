@@ -1,5 +1,20 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
+import {
+  ChevronRight,
+  CircleUserRound,
+  Heart,
+  House,
+  Menu,
+  MessageCircle,
+  Music2,
+  Plus,
+  Search,
+  Share2,
+  Star,
+  UserRound,
+  Volume2,
+} from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 
 import VerifyPillButton from '../../components/common/VerifyPillButton.vue'
@@ -14,21 +29,26 @@ import ReRecommendLoop from '../verification/ReRecommendLoop.vue'
 
 import { useSessionStore } from '../../app/store/session'
 import { api } from '../../services/api'
-import type { Evidence, VerificationResult } from '../../types/api'
+import type { BBox, CandidateProduct, Evidence, IdentifyResult, VerificationResult } from '../../types/api'
 
 const router = useRouter()
 const session = useSessionStore()
 
-const videoSrc = '/assets/mock/videos/main_demo.mp4'
+const videoSrc = ref('/assets/mock/videos/main_demo.mp4')
 const videoRef = ref<HTMLVideoElement | null>(null)
+const fileInput = ref<HTMLInputElement | null>(null)
 const isPaused = ref(false)
 
 // Drawer state (1: Target Confirmation, 2: Requirements Input, 3: AI Analysis, 4: Results)
 const showDrawer = ref(false)
 const drawerStep = ref(1)
+const isAddingNewRequirement = ref(false)
 
 // Selected product candidate state
-const selectedCandidateId = ref('atk_a9_ultimate')
+const selectedCandidateId = ref('')
+const identifyResult = ref<IdentifyResult | null>(null)
+const candidates = computed(() => identifyResult.value?.candidates ?? [])
+const selectedCandidate = computed(() => candidates.value.find((item) => item.product_id === selectedCandidateId.value) ?? null)
 const rawQueryText = ref('')
 const isRecording = ref(false)
 
@@ -46,14 +66,7 @@ const verificationResult = ref<VerificationResult | null>(null)
 const selectedEvidence = ref<Evidence | null>(null)
 
 onMounted(() => {
-  session.videoId = 'demo_video_001'
-  session.categoryId = 'gaming_mouse'
-  session.setProduct({
-    product_id: 'atk_a9_ultimate',
-    product_name: '轻量化无线游戏鼠标 G Pro',
-    confidence: 0.98,
-    image_url: '/assets/mock/products/62e1042760e7bac7a95e2a27a8bfde1e.png',
-  })
+  void loadVideo(session.videoId)
 })
 
 onUnmounted(() => {
@@ -77,15 +90,75 @@ function handlePause() {
   isPaused.value = true
 }
 
+async function loadVideo(videoId: string) {
+  try {
+    const video = await api.getVideo(videoId)
+    videoSrc.value = video.video_url ?? '/assets/mock/videos/main_demo.mp4'
+    const object = video.objects[0]
+    if (object) await identifyObject(videoId, object.bbox)
+  } catch (error) {
+    console.warn('视频元数据加载失败，保留当前演示画面', error)
+  }
+}
+
+async function identifyObject(videoId: string, selection: BBox) {
+  try {
+    const result = await api.identify(videoId, 0, selection)
+    identifyResult.value = result
+    session.setIdentification(result)
+    if (result.candidates[0]) selectCandidate(result.candidates[0])
+  } catch (error) {
+    identifyResult.value = null
+    session.setIdentification({ category_id: '', category_name: '', visual_attributes: {}, candidates: [] })
+    console.warn('视频对象识别失败，等待用户重新选择或上传视频', error)
+  }
+}
+
+function selectCandidate(candidate: CandidateProduct) {
+  selectedCandidateId.value = candidate.product_id
+  session.setProduct(candidate)
+}
+
+function openUploadPicker() {
+  fileInput.value?.click()
+}
+
+async function handleUpload(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+  try {
+    const video = await api.uploadVideo(file)
+    session.videoId = video.video_id
+    session.categoryId = ''
+    session.setProduct({ product_id: '', product_name: '', confidence: 0, image_url: null })
+    videoSrc.value = video.video_url ?? URL.createObjectURL(file)
+    identifyResult.value = null
+    if (video.objects[0]) await identifyObject(video.video_id, video.objects[0].bbox)
+  } catch (error) {
+    console.error('视频上传失败', error)
+  } finally {
+    input.value = ''
+  }
+}
+
 function openVerificationDrawer() {
   if (videoRef.value && !videoRef.value.paused) {
     videoRef.value.pause()
   }
+  isAddingNewRequirement.value = false
   drawerStep.value = 1
   showDrawer.value = true
 }
 
 function confirmProductStep() {
+  isAddingNewRequirement.value = false
+  drawerStep.value = 2
+}
+
+function openNewRequirementStep() {
+  rawQueryText.value = ''
+  isAddingNewRequirement.value = true
   drawerStep.value = 2
 }
 
@@ -132,7 +205,7 @@ async function startAiAnalysis() {
     const res = await api.runVerification({
       video_id: session.videoId,
       product_id: selectedCandidateId.value,
-      category_id: 'gaming_mouse',
+      category_id: session.categoryId,
       conditions: {
         budget: selectedBudget.value,
         connection: selectedConnection.value,
@@ -144,11 +217,27 @@ async function startAiAnalysis() {
       if (aiTimer) clearInterval(aiTimer)
       verificationResult.value = res
       session.setVerificationResult(res)
-      drawerStep.value = 4
+      if (isAddingNewRequirement.value) {
+        session.inheritedConditions = {
+          ...session.inheritedConditions,
+          rawQuery: rawQueryText.value,
+        }
+        showDrawer.value = false
+        isAddingNewRequirement.value = false
+        router.push('/recommendations')
+      } else {
+        drawerStep.value = 4
+      }
     }, 1300)
   } catch (err) {
     console.error(err)
-    drawerStep.value = 4
+    if (isAddingNewRequirement.value) {
+      showDrawer.value = false
+      isAddingNewRequirement.value = false
+      router.push('/recommendations')
+    } else {
+      drawerStep.value = 4
+    }
   }
 }
 
@@ -181,10 +270,18 @@ async function openEvidenceDetail(id: string) {
       <div class="video-feed-screen" @click="togglePlay">
         <!-- Top Nav -->
         <div class="tiktok-top-bar" @click.stop>
+          <button class="feed-icon-button" type="button" aria-label="打开菜单">
+            <Menu :size="23" :stroke-width="2" />
+          </button>
           <div class="nav-tabs">
             <span>关注</span>
             <span class="active">推荐</span>
+            <span>直播</span>
+            <span>商城</span>
           </div>
+          <button class="feed-icon-button" type="button" aria-label="搜索">
+            <Search :size="23" :stroke-width="2" />
+          </button>
         </div>
 
         <!-- Video Element -->
@@ -202,48 +299,73 @@ async function openEvidenceDetail(id: string) {
         ></video>
 
         <!-- Bounding Rings around Target -->
-        <div class="target-bounding-overlay" @click.stop="openVerificationDrawer">
+        <div v-if="isPaused" class="target-bounding-overlay" @click.stop="openVerificationDrawer">
           <div class="clean-target-ring">
             <span class="target-dot"></span>
-            <span class="target-name">无线游戏鼠标</span>
+            <span class="target-name">{{ identifyResult?.category_name || '待识别商品' }}</span>
           </div>
         </div>
 
         <!-- Floating Pill Button -->
-        <div class="floating-pill-position" @click.stop="openVerificationDrawer">
+        <div v-if="isPaused" class="floating-pill-position" @click.stop="openVerificationDrawer">
           <VerifyPillButton />
         </div>
 
         <!-- Right TikTok Sidebar -->
         <div class="tiktok-right-sidebar" @click.stop>
+          <div class="creator-avatar-wrap">
+            <div class="creator-avatar">
+              <CircleUserRound :size="28" :stroke-width="1.6" />
+            </div>
+            <span class="follow-plus" aria-hidden="true"><Plus :size="13" :stroke-width="2.6" /></span>
+          </div>
           <div class="sidebar-item">
-            <span class="icon">❤️</span>
+            <Heart class="sidebar-icon" :size="29" :stroke-width="1.8" fill="currentColor" />
             <span class="count">143.7万</span>
           </div>
           <div class="sidebar-item">
-            <span class="icon">💬</span>
+            <MessageCircle class="sidebar-icon" :size="29" :stroke-width="1.8" fill="currentColor" />
             <span class="count">1.4万</span>
           </div>
           <div class="sidebar-item">
-            <span class="icon">⭐</span>
+            <Star class="sidebar-icon" :size="29" :stroke-width="1.8" fill="currentColor" />
             <span class="count">3.4万</span>
+          </div>
+          <div class="sidebar-item">
+            <Share2 class="sidebar-icon" :size="29" :stroke-width="1.8" />
+            <span class="count">分享</span>
+          </div>
+          <div class="sidebar-item sound-item">
+            <Volume2 class="sidebar-icon" :size="27" :stroke-width="1.8" />
+          </div>
+        </div>
+
+        <div class="video-bottom-content" @click.stop>
+          <div class="creator-copy">
+            <strong>@创作者</strong>
+            <p>分享真实使用体验与产品细节</p>
+            <span><Music2 :size="13" :stroke-width="1.8" /> 原声 · 产品体验</span>
+          </div>
+          <div class="hot-strip">
+            <span>热门内容正在播放</span>
+            <span>更多 <ChevronRight :size="15" :stroke-width="2" /></span>
           </div>
         </div>
 
         <!-- Bottom Navigation Bar -->
         <div class="tiktok-bottom-nav" @click.stop>
-          <span class="active">首页</span>
-          <span>朋友</span>
-          <span class="plus-btn">+</span>
-          <span>消息</span>
-          <span>我</span>
+          <span class="bottom-nav-item active"><House class="bottom-nav-icon" :size="19" :stroke-width="2" />首页</span>
+          <span class="bottom-nav-item"><UserRound class="bottom-nav-icon" :size="19" :stroke-width="1.9" />朋友</span>
+          <button class="plus-btn" type="button" aria-label="上传视频" @click="openUploadPicker"><Plus :size="24" :stroke-width="2.2" /></button>
+          <span class="bottom-nav-item"><MessageCircle class="bottom-nav-icon" :size="19" :stroke-width="1.9" />消息</span>
+          <span class="bottom-nav-item"><UserRound class="bottom-nav-icon" :size="19" :stroke-width="1.9" />我</span>
         </div>
       </div>
 
       <!-- Bottom Sheet Drawer Modal -->
       <BottomDrawer
         :show="showDrawer"
-        :title="drawerStep === 1 ? '确认目标商品' : drawerStep === 2 ? '补充使用需求' : drawerStep === 3 ? 'AI 分析中' : '验真结果'"
+        :title="drawerStep === 1 ? '确认目标商品' : drawerStep === 2 ? (isAddingNewRequirement ? '增加新需求...' : '补充使用需求') : drawerStep === 3 ? 'AI 分析中' : '验真结果'"
         @close="showDrawer = false"
       >
         <!-- STEP 1: 确认目标商品 -->
@@ -251,35 +373,25 @@ async function openEvidenceDetail(id: string) {
           <div class="section-subtitle">根据视频内容自动匹配候选目标:</div>
 
           <div class="candidate-cards-list">
-            <div
-              class="cand-card-item"
-              :class="{ selected: selectedCandidateId === 'atk_a9_ultimate' }"
-              @click="selectedCandidateId = 'atk_a9_ultimate'"
-            >
-              <div class="card-left-img"></div>
-              <div class="card-right-info">
-                <div class="info-top-row">
-                  <span class="product-title-text">轻量化无线游戏鼠标 G Pro</span>
-                  <span class="confidence-badge">置信度 92%</span>
+            <template v-if="candidates.length">
+              <div
+                v-for="candidate in candidates"
+                :key="candidate.product_id"
+                class="cand-card-item"
+                :class="{ selected: selectedCandidateId === candidate.product_id }"
+                @click="selectCandidate(candidate)"
+              >
+                <div class="card-left-img"></div>
+                <div class="card-right-info">
+                  <div class="info-top-row">
+                    <span class="product-title-text">{{ candidate.product_name }}</span>
+                    <span class="confidence-badge">{{ Math.round(candidate.confidence * 100) }}%</span>
+                  </div>
+                  <div class="product-sub-spec">{{ identifyResult?.category_name || '待识别商品' }}</div>
                 </div>
-                <div class="product-sub-spec">约63g / RGB灯效 / 极低延迟</div>
               </div>
-            </div>
-
-            <div
-              class="cand-card-item"
-              :class="{ selected: selectedCandidateId === 'razer_viper_v3_pro' }"
-              @click="selectedCandidateId = 'razer_viper_v3_pro'"
-            >
-              <div class="card-left-img"></div>
-              <div class="card-right-info">
-                <div class="info-top-row">
-                  <span class="product-title-text">双模无线电竞鼠标</span>
-                  <span class="confidence-badge">置信度 78%</span>
-                </div>
-                <div class="product-sub-spec">长续航 / 可编程侧键</div>
-              </div>
-            </div>
+            </template>
+            <div v-else class="product-sub-spec">暂无可确认候选商品</div>
           </div>
 
           <button class="restrained-primary-btn" @click="confirmProductStep">
@@ -294,7 +406,7 @@ async function openEvidenceDetail(id: string) {
             <div class="product-thumb"></div>
             <div class="product-meta">
               <span class="meta-label">已识别商品</span>
-              <span class="meta-title">轻量化无线游戏鼠标 G Pro</span>
+              <span class="meta-title">{{ selectedCandidate?.product_name || '等待识别商品' }}</span>
             </div>
           </div>
 
@@ -328,44 +440,9 @@ async function openEvidenceDetail(id: string) {
             </button>
           </div>
 
-          <!-- 智能挑选两个重要经典常用的参考方面 (预算/连接) -->
-          <div class="native-options-section">
-            <div class="native-opt-row">
-              <span class="opt-row-title">预算</span>
-              <div class="native-chips-wrap">
-                <button
-                  v-for="b in ['<300', '300-500', '>500']"
-                  :key="b"
-                  type="button"
-                  class="native-chip-btn"
-                  :class="{ selected: selectedBudget === b }"
-                  @click="selectedBudget = b"
-                >
-                  {{ b }}
-                </button>
-              </div>
-            </div>
-
-            <div class="native-opt-row">
-              <span class="opt-row-title">连接</span>
-              <div class="native-chips-wrap">
-                <button
-                  v-for="c in ['无线', '有线', '三模']"
-                  :key="c"
-                  type="button"
-                  class="native-chip-btn"
-                  :class="{ selected: selectedConnection === c }"
-                  @click="selectedConnection = c"
-                >
-                  {{ c }}
-                </button>
-              </div>
-            </div>
-          </div>
-
           <!-- 开始验真 主按钮 (已删除预计8秒生成结果字样) -->
           <button class="restrained-primary-btn" @click="startAiAnalysis">
-            <span class="btn-main-text">开始验真</span>
+            <span class="btn-main-text">{{ isAddingNewRequirement ? 'AI 验真并推出新产品' : '开始验真' }}</span>
           </button>
         </div>
 
@@ -401,7 +478,7 @@ async function openEvidenceDetail(id: string) {
           <div class="top-hero-block">
             <div class="top-hero-row">
               <RecommendationGauge :score="verificationResult?.recommendation_score || 0.82" />
-              <ProductHeroCard :product="verificationResult?.product || session.selectedProduct" categoryName="鼠标/电竞游戏鼠标" />
+              <ProductHeroCard :product="verificationResult?.product || session.selectedProduct" :category-name="identifyResult?.category_name || ''" />
             </div>
 
             <div class="summary-single-line">
@@ -413,7 +490,11 @@ async function openEvidenceDetail(id: string) {
           <RequirementTags :conditions="verificationResult?.conditions" />
 
           <div class="conclusion-banner">
-            <span class="check-icon">✓</span>
+            <span class="check-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false">
+                <path d="M5 12.5L9.4 17L19 7" />
+              </svg>
+            </span>
             <span class="banner-text">当前证据支持<strong>该鼠标能较好满足你的需求</strong>，整体推荐购买。</span>
           </div>
 
@@ -424,10 +505,11 @@ async function openEvidenceDetail(id: string) {
           </div>
 
           <MultiChannelPurchase />
-          <ReRecommendLoop @click="drawerStep = 2" />
+          <ReRecommendLoop @click="openNewRequirementStep" />
         </div>
       </BottomDrawer>
 
+      <input ref="fileInput" type="file" accept="video/*" hidden @change="handleUpload" />
       <EvidenceDetailModal :evidence="selectedEvidence" @close="selectedEvidence = null" />
     </div>
   </div>
@@ -553,8 +635,8 @@ async function openEvidenceDetail(id: string) {
 
 .floating-pill-position {
   position: absolute;
-  bottom: 100px;
-  right: 18px;
+  right: 72px;
+  bottom: 178px;
   z-index: 20;
 }
 
@@ -829,58 +911,6 @@ async function openEvidenceDetail(id: string) {
   }
 }
 
-/* 10-12. 选项标签组 (高度 36px, 圆角 10px) */
-.native-options-section {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.native-opt-row {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.opt-row-title {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.5);
-  width: 32px;
-  font-weight: 400;
-}
-
-.native-chips-wrap {
-  display: flex;
-  gap: 10px;
-}
-
-.native-chip-btn {
-  height: 36px;
-  padding: 0 14px;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.05);
-  border: none;
-  color: rgba(255, 255, 255, 0.65);
-  font-size: 13px;
-  font-weight: 400;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.native-chip-btn.selected {
-  background: rgba(37, 99, 235, 0.2);
-  color: #60a5fa;
-  font-weight: 500;
-}
-
-.check-mark {
-  font-size: 12px;
-  font-weight: 700;
-}
-
 /* 13-15. 克制的高质感主按钮 (高度 56px, 圆角 16px) */
 .restrained-primary-btn {
   width: 100%;
@@ -999,39 +1029,335 @@ async function openEvidenceDetail(id: string) {
 }
 
 .conclusion-banner {
+  position: relative;
+  overflow: hidden;
   display: flex;
   align-items: center;
   gap: 10px;
-  background: rgba(16, 185, 129, 0.08);
-  border: 1px solid rgba(16, 185, 129, 0.35);
-  border-radius: 8px;
+  background: #07111d;
+  border: 1px solid rgba(95, 205, 255, 0.58);
+  border-radius: 10px;
   padding: 12px 14px;
   color: #ffffff;
   font-size: 13px;
   line-height: 1.4;
+  box-shadow:
+    inset 0 0 18px rgba(105, 231, 220, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 0 0 1px rgba(105, 231, 220, 0.08),
+    0 0 20px rgba(105, 231, 220, 0.22),
+    0 0 28px rgba(59, 130, 246, 0.16),
+    0 10px 24px rgba(0, 0, 0, 0.22);
+}
+
+.conclusion-banner::after {
+  position: absolute;
+  inset: 1px;
+  pointer-events: none;
+  border: 1px solid rgba(105, 231, 220, 0.14);
+  border-radius: 9px;
+  box-shadow:
+    inset 0 0 18px rgba(105, 231, 220, 0.06),
+    inset 0 0 28px rgba(59, 130, 246, 0.04);
+  content: "";
 }
 
 .conclusion-banner .check-icon {
+  position: relative;
+  z-index: 1;
   width: 22px;
   height: 22px;
-  border-radius: 50%;
-  background: #10b981;
-  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 800;
-  font-size: 12px;
   flex-shrink: 0;
+  color: #69e7dc;
+}
+
+.conclusion-banner .check-icon svg {
+  width: 22px;
+  height: 22px;
+  overflow: visible;
+}
+
+.conclusion-banner .check-icon path {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.8;
+}
+
+.conclusion-banner .banner-text {
+  position: relative;
+  z-index: 1;
 }
 
 .conclusion-banner strong {
-  color: #38bdf8;
+  color: #69e7dc;
+  font-weight: 700;
+  text-shadow: 0 0 14px rgba(105, 231, 220, 0.28);
 }
 
 .evidence-clean-list {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+/* TikTok-style feed chrome stays readable over the video without crowding the frame. */
+.video-feed-screen {
+  overflow: hidden;
+}
+
+.video-feed-screen::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 10;
+  height: 124px;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.96) 0%,
+    rgba(0, 0, 0, 0.88) 44%,
+    rgba(0, 0, 0, 0.38) 78%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  content: "";
+}
+
+.tiktok-top-bar {
+  top: 42px;
+  right: 0;
+  left: 0;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 34px;
+  align-items: center;
+  height: 42px;
+  padding: 0 11px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.42), transparent);
+}
+
+.feed-icon-button {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  padding: 0;
+  color: rgba(255, 255, 255, 0.92);
+  background: transparent;
+  border: 0;
+}
+
+.nav-tabs {
+  justify-content: center;
+  gap: 12px;
+  min-width: 0;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.nav-tabs span {
+  position: relative;
+  flex: 0 0 auto;
+  padding: 8px 0 10px;
+}
+
+.nav-tabs .active {
+  font-weight: 700;
+}
+
+.nav-tabs .active::after {
+  position: absolute;
+  right: 2px;
+  bottom: 3px;
+  left: 2px;
+  height: 2px;
+  border-radius: 2px;
+  background: #ffffff;
+  content: "";
+}
+
+.tiktok-right-sidebar {
+  right: 10px;
+  bottom: 132px;
+  gap: 14px;
+  z-index: 22;
+  color: #ffffff;
+}
+
+.creator-avatar-wrap {
+  position: relative;
+  width: 48px;
+  height: 54px;
+  margin-bottom: 1px;
+}
+
+.creator-avatar {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.9);
+  background:
+    radial-gradient(circle at 34% 25%, rgba(255, 255, 255, 0.42), transparent 18%),
+    linear-gradient(145deg, #3b5f8f, #182033 58%, #2e9caa);
+  border: 2px solid rgba(255, 255, 255, 0.94);
+  border-radius: 50%;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+
+.follow-plus {
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  display: grid;
+  width: 19px;
+  height: 19px;
+  place-items: center;
+  color: #ffffff;
+  background: #fe2c55;
+  border: 0;
+  border-radius: 50%;
+  transform: translateX(-50%);
+}
+
+.sidebar-item {
+  gap: 3px;
+  min-width: 42px;
+}
+
+.sidebar-icon {
+  color: rgba(255, 255, 255, 0.96);
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.32));
+}
+
+.sidebar-item .count {
+  color: rgba(255, 255, 255, 0.94);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.1;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
+}
+
+.sound-item {
+  display: grid;
+  width: 43px;
+  height: 43px;
+  place-items: center;
+  margin-top: 2px;
+  color: #111827;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 50%;
+}
+
+.sound-item .sidebar-icon {
+  color: #111827;
+  filter: none;
+}
+
+.video-bottom-content {
+  position: absolute;
+  right: 58px;
+  bottom: 52px;
+  left: 14px;
+  z-index: 18;
+  padding: 0 0 10px;
+  color: #ffffff;
+  text-shadow: 0 1px 5px rgba(0, 0, 0, 0.7);
+}
+
+.creator-copy {
+  max-width: 265px;
+  padding-bottom: 10px;
+}
+
+.creator-copy strong {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.creator-copy p {
+  margin: 0 0 8px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.creator-copy span {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  max-width: 100%;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 10px;
+}
+
+.hot-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 34px;
+  margin: 0 -58px 0 -14px;
+  padding: 0 14px;
+  color: #ffd94a;
+  background: rgba(18, 18, 18, 0.86);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 10px;
+  text-shadow: none;
+}
+
+.hot-strip span:last-child {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.tiktok-bottom-nav {
+  height: 62px;
+  padding: 5px 8px 7px;
+  background: rgba(10, 10, 10, 0.96);
+  border-top-color: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(14px);
+}
+
+.bottom-nav-item {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  color: #8b8d95;
+  font-size: 10px;
+  line-height: 1;
+}
+
+.bottom-nav-item.active {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.bottom-nav-icon {
+  flex: 0 0 auto;
+}
+
+.plus-btn {
+  display: grid;
+  width: 48px;
+  height: 34px;
+  place-items: center;
+  padding: 0;
+  color: #101318;
+  background: #ffffff;
+  border-radius: 10px;
 }
 </style>

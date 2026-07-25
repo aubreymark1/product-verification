@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, File, UploadFile
 from fastapi.responses import JSONResponse
 
 from app.database.mock_store import MockDataNotFound, mock_store
@@ -17,6 +17,7 @@ from app.schemas.contracts import (
 )
 from app.services.verification.service import NoAlternativeProductError, VerificationService
 from app.services.vision.service import VisionService
+from app.services.video_upload import VideoUploadError, video_upload_registry
 
 router = APIRouter()
 vision_service = VisionService()
@@ -52,6 +53,9 @@ def health() -> dict[str, object]:
 
 @router.get("/videos/{video_id}", response_model=ApiResponse)
 def get_video(video_id: str) -> dict[str, object] | JSONResponse:
+    uploaded = video_upload_registry.get(video_id)
+    if uploaded is not None:
+        return ok(uploaded)
     try:
         return ok(Video.model_validate(mock_store.find_by_id("videos.json", "video_id", video_id)))
     except MockDataNotFound as exc:
@@ -83,6 +87,20 @@ def run_verification(request: VerificationRequest) -> dict[str, object] | JSONRe
         return ok(verification_service.run(request))
     except MockDataNotFound as exc:
         return not_found(str(exc))
+
+
+@router.post("/videos/upload", response_model=ApiResponse)
+async def upload_video(file: UploadFile = File(...)) -> dict[str, object] | JSONResponse:
+    try:
+        content = await file.read(video_upload_registry.max_bytes + 1)
+        return ok(video_upload_registry.save(file.filename, content, file.content_type))
+    except VideoUploadError as exc:
+        payload = ApiResponse(
+            success=False,
+            data=None,
+            error=ApiError(code="INVALID_VIDEO_UPLOAD", message=str(exc)),
+        ).model_dump()
+        return JSONResponse(status_code=400, content=payload)
 
 
 @router.post("/recommendations/rerun", response_model=ApiResponse)

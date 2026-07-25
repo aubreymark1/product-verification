@@ -15,6 +15,12 @@ const percent = Math.round(props.score * 100)
   <div class="gauge-ring-only">
     <div class="ring-wrapper">
       <svg class="ring-svg" viewBox="0 0 100 100">
+        <defs>
+          <linearGradient id="recommendation-gauge-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#27c7d9" />
+            <stop offset="100%" stop-color="#62a8ff" />
+          </linearGradient>
+        </defs>
         <!-- Background Track -->
         <circle cx="50" cy="50" r="40" class="ring-bg" />
         <!-- Progress Arc -->
@@ -23,8 +29,9 @@ const percent = Math.round(props.score * 100)
           cy="50"
           r="40"
           class="ring-progress"
+          stroke="url(#recommendation-gauge-gradient)"
           :stroke-dasharray="251.2"
-          :stroke-dashoffset="251.2 * (1 - percent / 100)"
+          :style="{ '--ring-offset': `${251.2 * (1 - percent / 100)}` }"
         />
       </svg>
 
@@ -49,8 +56,8 @@ const percent = Math.round(props.score * 100)
 
 .ring-wrapper {
   position: relative;
-  width: 90px;
-  height: 90px;
+  width: 112px;
+  height: 112px;
 }
 
 .ring-svg {
@@ -61,17 +68,20 @@ const percent = Math.round(props.score * 100)
 
 .ring-bg {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.08);
-  stroke-width: 8;
+  stroke: rgba(105, 231, 220, 0.12);
+  stroke-width: 6;
+  filter: drop-shadow(0 0 5px rgba(105, 231, 220, 0.1));
 }
 
 .ring-progress {
   fill: none;
-  stroke: #06b6d4;
-  stroke-width: 8;
+  stroke-width: 6;
   stroke-linecap: round;
-  transition: stroke-dashoffset 0.8s ease-in-out;
-  filter: drop-shadow(0 0 6px rgba(6, 182, 212, 0.6));
+  stroke-dashoffset: 251.2;
+  animation: gauge-progress-in 900ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  filter:
+    drop-shadow(0 0 3px rgba(105, 231, 220, 0.54))
+    drop-shadow(0 0 8px rgba(98, 168, 255, 0.28));
 }
 
 .ring-content {
@@ -81,14 +91,16 @@ const percent = Math.round(props.score * 100)
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #38bdf8;
+  color: #69e7dc;
 }
 
 .ring-label {
-  font-size: 10px;
-  color: #38bdf8;
+  order: 0;
+  margin-bottom: 3px;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 11px;
   font-weight: 500;
-  margin-bottom: -2px;
+  line-height: 1;
 }
 
 .ring-score {
@@ -97,15 +109,46 @@ const percent = Math.round(props.score * 100)
 }
 
 .ring-score .num {
-  font-size: 22px;
-  font-weight: 800;
-  color: #38bdf8;
+  font-family: Inter, Arial, sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  color: #f8fffe;
   line-height: 1;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
 }
 
 .ring-score .unit {
-  font-size: 11px;
-  font-weight: 700;
-  color: #38bdf8;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(105, 231, 220, 0.92);
+}
+
+@media (max-width: 360px) {
+  .ring-wrapper {
+    width: 106px;
+    height: 106px;
+  }
+
+  .ring-score .num {
+    font-size: 30px;
+  }
+
+  .ring-score .unit {
+    font-size: 12px;
+  }
+}
+
+@keyframes gauge-progress-in {
+  to {
+    stroke-dashoffset: var(--ring-offset);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ring-progress {
+    animation: none;
+    stroke-dashoffset: var(--ring-offset);
+  }
 }
 </style>
