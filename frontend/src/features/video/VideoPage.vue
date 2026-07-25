@@ -328,41 +328,6 @@ async function openEvidenceDetail(id: string) {
             </button>
           </div>
 
-          <!-- 智能挑选两个重要经典常用的参考方面 (预算/连接) -->
-          <div class="native-options-section">
-            <div class="native-opt-row">
-              <span class="opt-row-title">预算</span>
-              <div class="native-chips-wrap">
-                <button
-                  v-for="b in ['<300', '300-500', '>500']"
-                  :key="b"
-                  type="button"
-                  class="native-chip-btn"
-                  :class="{ selected: selectedBudget === b }"
-                  @click="selectedBudget = b"
-                >
-                  {{ b }}
-                </button>
-              </div>
-            </div>
-
-            <div class="native-opt-row">
-              <span class="opt-row-title">连接</span>
-              <div class="native-chips-wrap">
-                <button
-                  v-for="c in ['无线', '有线', '三模']"
-                  :key="c"
-                  type="button"
-                  class="native-chip-btn"
-                  :class="{ selected: selectedConnection === c }"
-                  @click="selectedConnection = c"
-                >
-                  {{ c }}
-                </button>
-              </div>
-            </div>
-          </div>
-
           <!-- 开始验真 主按钮 (已删除预计8秒生成结果字样) -->
           <button class="restrained-primary-btn" @click="startAiAnalysis">
             <span class="btn-main-text">开始验真</span>
@@ -827,58 +792,6 @@ async function openEvidenceDetail(id: string) {
     transform: scale(0.96);
     opacity: 0.8;
   }
-}
-
-/* 10-12. 选项标签组 (高度 36px, 圆角 10px) */
-.native-options-section {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.native-opt-row {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.opt-row-title {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.5);
-  width: 32px;
-  font-weight: 400;
-}
-
-.native-chips-wrap {
-  display: flex;
-  gap: 10px;
-}
-
-.native-chip-btn {
-  height: 36px;
-  padding: 0 14px;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.05);
-  border: none;
-  color: rgba(255, 255, 255, 0.65);
-  font-size: 13px;
-  font-weight: 400;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.native-chip-btn.selected {
-  background: rgba(37, 99, 235, 0.2);
-  color: #60a5fa;
-  font-weight: 500;
-}
-
-.check-mark {
-  font-size: 12px;
-  font-weight: 700;
 }
 
 /* 13-15. 克制的高质感主按钮 (高度 56px, 圆角 16px) */

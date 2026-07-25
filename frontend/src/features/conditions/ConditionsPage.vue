@@ -3,8 +3,6 @@ import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import StatusMessage from '../../components/common/StatusMessage.vue'
-import DynamicForm from '../../components/dynamic-form/DynamicForm.vue'
-import VoiceTextInput, { type StructuredRequirements } from '../../components/dynamic-form/VoiceTextInput.vue'
 import AiAnalysisLoading from '../verification/AiAnalysisLoading.vue'
 import { useSessionStore } from '../../app/store/session'
 import { api } from '../../services/api'
@@ -41,13 +39,6 @@ onMounted(async () => {
   }
 })
 
-function handleStructuredChange(structured: StructuredRequirements) {
-  if (structured.budgetMax !== undefined) formData.budget = structured.budgetMax
-  if (structured.primaryUsage !== undefined) formData.game_type = structured.primaryUsage
-  if (structured.connection !== undefined) formData.wireless = structured.connection === 'wireless'
-  if (structured.preferences !== undefined) formData.features = structured.preferences
-}
-
 async function submit() {
   if (!session.selectedProduct || !profile.value) return
   submitting.value = true
@@ -80,9 +71,6 @@ async function submit() {
     <div class="page-header">
       <div class="header-badge">STEP 02 · 动态条件配置</div>
       <h1 class="page-title">个性化使用需求</h1>
-      <p v-if="session.selectedProduct" class="product-subtitle">
-        已选目标商品：<span class="highlight-product">{{ session.selectedProduct.product_name }}</span>
-      </p>
     </div>
 
     <!-- AI Loading overlay during submit -->
@@ -94,22 +82,12 @@ async function submit() {
       <StatusMessage v-else-if="error && !profile" type="error" :message="error" />
 
       <form v-else-if="profile" class="form-glass-card" @submit.prevent="submit">
-        <div class="category-meta-bar">
-          <span class="meta-tag">🏷️ {{ profile.category_name }} 品类表单</span>
-          <span class="meta-desc">字段由后端动态 CategoryProfile 驱动</span>
-        </div>
-
-        <!-- Dynamic Form Fields -->
-        <DynamicForm :fields="profile.condition_fields" v-model="formData" />
-
-        <div class="divider"></div>
-
-        <!-- Voice & Text Simulated Input -->
-        <VoiceTextInput
+        <textarea
           v-model="rawQuery"
-          @structured-change="handleStructuredChange"
-          @confirm="submit"
-        />
+          class="requirements-input"
+          rows="6"
+          placeholder="请输入你的使用需求"
+        ></textarea>
 
         <StatusMessage v-if="error" type="error" :message="error" />
 
@@ -231,5 +209,26 @@ async function submit() {
 .gradient-submit-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.requirements-input {
+  width: 100%;
+  min-height: 144px;
+  box-sizing: border-box;
+  padding: 14px 16px;
+  resize: vertical;
+  color: #f8fafc;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.6;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+}
+
+.requirements-input:focus {
+  outline: none;
+  border-color: #38bdf8;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
 }
 </style>

@@ -1,293 +1,444 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import {
+  BarChart3,
+  ChevronLeft,
+  Share2,
+  ShieldCheck,
+  Sparkles,
+} from 'lucide-vue-next'
 
 import StatusMessage from '../../components/common/StatusMessage.vue'
-import EvidenceCard from '../../components/evidence/EvidenceCard.vue'
-import EvidenceDetailModal from '../../components/evidence/EvidenceDetailModal.vue'
+import EvidenceSearchHeading from '../../components/evidence/EvidenceSearchHeading.vue'
+import EvidenceSection from '../../mock/EvidenceSection.vue'
+import EvidenceSourceDetail from '../../mock/EvidenceSourceDetail.vue'
 import RequirementTags from '../conditions/RequirementTags.vue'
 import RecommendationGauge from './RecommendationGauge.vue'
 import ProductHeroCard from './ProductHeroCard.vue'
 import MultiChannelPurchase from './MultiChannelPurchase.vue'
 import ReRecommendLoop from './ReRecommendLoop.vue'
+import VerificationSummary from './VerificationSummary.vue'
 
 import { useSessionStore } from '../../app/store/session'
 import { api } from '../../services/api'
-import type { Evidence } from '../../types/api'
+import {
+  mockEvidenceGroups,
+  type EvidenceItem,
+} from '../../mock/evidenceData'
 
 const router = useRouter()
 const session = useSessionStore()
-const evidence = ref<Evidence | null>(null)
-const evidenceLoading = ref(false)
+
 const error = ref('')
 
-async function openEvidence(id: string) {
-  evidenceLoading.value = true
-  error.value = ''
-  try {
-    evidence.value = await api.getEvidence(id)
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : '证据加载失败'
-  } finally {
-    evidenceLoading.value = false
-  }
+/**
+ * 默认显示第一条风险证据的来源详情。
+ * 如果 Mock 数据为空，则安全回退为 null。
+ */
+const selectedEvidence = ref<EvidenceItem | null>(
+  mockEvidenceGroups.find((group) => group.type === 'risk')?.items[0] ?? null,
+)
+
+/**
+ * 点击证据条目后，切换下方的来源详情。
+ */
+function handleEvidenceSelect(item: EvidenceItem) {
+  selectedEvidence.value = item
 }
 
+/**
+ * 加入横评。
+ *
+ * 暂时保留现有后端接口。
+ * 接口不可用时仍然进入横评页，避免前端演示流程被阻断。
+ */
 async function addComparison() {
-  if (!session.selectedProduct) return
+  if (!session.selectedProduct) {
+    error.value = '暂未识别到可加入横评的商品'
+    return
+  }
+
+  error.value = ''
+
   try {
     await api.addComparison({
       product_id: session.selectedProduct.product_id,
       category_id: session.categoryId,
       result_id: session.verificationResult?.result_id,
     })
-    await router.push('/comparison')
   } catch (err) {
-    error.value = err instanceof Error ? err.message : '加入横评失败'
+    console.warn('横评接口暂不可用，使用前端演示模式继续：', err)
   }
+
+  await router.push('/comparison')
 }
 </script>
 
 <template>
   <section class="verification-page-shell">
-    <!-- Header -->
+    <!-- 顶部导航 -->
     <div class="page-top-header">
-      <button class="back-link" @click="router.push('/conditions')">&lt; 返回设置</button>
+      <button
+        type="button"
+        class="back-link"
+        @click="router.push('/conditions')"
+      >
+        <ChevronLeft :size="17" :stroke-width="1.8" />
+        <span>返回设置</span>
+      </button>
+
       <h1 class="nav-title">验真结果</h1>
-      <button class="share-btn">🔗</button>
+
+      <button
+        type="button"
+        class="share-btn"
+        aria-label="分享验真结果"
+      >
+        <Share2 :size="17" :stroke-width="1.8" />
+      </button>
     </div>
 
-    <!-- Empty State -->
+    <!-- 空状态 -->
     <StatusMessage
       v-if="!session.verificationResult"
       type="empty"
       message="还没有可展示的验真结果，请从视频页或条件配置页开始流程。"
     />
 
-    <!-- Main Results View -->
+    <!-- 验真结果主体 -->
     <div v-else class="results-wrapper">
-      <!-- Top Row: Gauge + Hero Card -->
+      <!-- 推荐度与商品信息 -->
       <div class="top-hero-row">
         <RecommendationGauge
           :score="session.verificationResult.confidence"
           :summary="session.verificationResult.summary"
           class="hero-gauge"
         />
+
         <ProductHeroCard
-          :product="session.verificationResult.product || session.selectedProduct"
+          :product="
+            session.verificationResult.product ||
+            session.selectedProduct
+          "
           class="hero-product"
         />
       </div>
 
-      <!-- My Requirements Tags -->
+      <!-- 综合评价 -->
+      <div class="overall-rating-row">
+        <Sparkles :size="14" :stroke-width="1.8" />
+        <span>综合评价较优，适合大部分玩家</span>
+      </div>
+
+      <!-- 用户需求标签 -->
       <RequirementTags
         :conditions="session.verificationResult.conditions"
       />
 
-      <!-- Overall AI Conclusion Banner -->
-      <div class="conclusion-banner">
-        <div class="shield-icon">🛡️</div>
-        <div class="conclusion-text">
-          当前证据支持<strong class="highlight-text">{{ session.verificationResult.product?.product_name || '该商品' }}</strong>较好满足你的需求，整体推荐购买。
-        </div>
-      </div>
+      <!-- 验真总结 -->
+      <VerificationSummary
+        :product-name="
+          session.verificationResult.product?.product_name ||
+          session.selectedProduct?.product_name ||
+          '该商品'
+        "
+      />
 
-      <!-- Evidence Accordion Cards (Risk, Support, Uncertain) -->
+      <!-- 前端 Mock 证据区域 -->
       <div class="evidence-group">
-        <!-- 🔴 Risk Evidence -->
-        <EvidenceCard
-          type="risk"
-          title="风险证据"
-          :items="session.verificationResult.risks"
-          @select-evidence="openEvidence"
+        <EvidenceSearchHeading />
+
+        <EvidenceSection
+          v-for="group in mockEvidenceGroups"
+          :key="group.type"
+          :group="group"
+          :default-expanded="true"
+          @select="handleEvidenceSelect"
         />
 
-        <!-- 🟢 Support Evidence -->
-        <EvidenceCard
-          type="support"
-          title="支持证据"
-          :items="session.verificationResult.support"
-          @select-evidence="openEvidence"
-        />
-
-        <!-- 🟡 Uncertain Items -->
-        <EvidenceCard
-          type="uncertain"
-          title="待确认项"
-          :items="session.verificationResult.uncertain"
-          @select-evidence="openEvidence"
+        <!-- 点击证据后显示对应的来源详情 -->
+        <EvidenceSourceDetail
+          :item="selectedEvidence"
         />
       </div>
 
-      <!-- Actions Bar: Comparison Button -->
+      <!-- 加入横评 -->
       <div class="comparison-bar">
-        <button class="comparison-action-btn" @click="addComparison">
-          <span>📊 加入多商品横评（占位）</span>
+        <button
+          type="button"
+          class="comparison-action-btn"
+          @click="addComparison"
+        >
+          <BarChart3 :size="17" :stroke-width="1.8" />
+          <span>加入多商品横评</span>
         </button>
       </div>
 
-      <!-- Multi-channel Purchase Banner -->
+      <!-- 全网低价 -->
       <MultiChannelPurchase />
 
-      <!-- Re-recommendation Loop Banner -->
-      <ReRecommendLoop />
+      <!-- 重新推荐 -->
+      <ReRecommendLoop @click="router.push('/recommendations')" />
 
-      <!-- Bottom Disclaimer -->
+      <!-- 免责声明 -->
       <div class="disclaimer-footer">
-        <span>🛡️ AI 结论基于公开网络内容与测评数据，仅供参考</span>
+        <ShieldCheck :size="15" :stroke-width="1.8" />
+        <span>AI 结论基于公开网络内容与测评数据，仅供参考</span>
       </div>
     </div>
 
-    <!-- Error Banner -->
-    <StatusMessage v-if="error" type="error" :message="error" />
-
-    <!-- Evidence Loading Modal -->
-    <div v-if="evidenceLoading" class="modal-loading-backdrop">
-      <div class="loading-box">正在加载证据详情…</div>
-    </div>
-
-    <!-- Evidence Detail Modal -->
-    <EvidenceDetailModal
-      :evidence="evidence"
-      @close="evidence = null"
+    <!-- 错误提示 -->
+    <StatusMessage
+      v-if="error"
+      type="error"
+      :message="error"
     />
   </section>
 </template>
 
 <style scoped>
 .verification-page-shell {
-  max-width: 640px;
+  width: 100%;
+  max-width: 430px;
   margin: 0 auto;
-  padding-bottom: 40px;
+  padding-bottom: 44px;
+
+  font-family:
+    "Inter",
+    "PingFang SC",
+    "Microsoft YaHei",
+    "Noto Sans SC",
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+
+  scrollbar-width: none;
 }
 
+.verification-page-shell::-webkit-scrollbar {
+  display: none;
+}
+
+:global(html),
+:global(body),
+:global(.page-shell) {
+  scrollbar-width: none;
+}
+
+:global(html::-webkit-scrollbar),
+:global(body::-webkit-scrollbar),
+:global(.page-shell::-webkit-scrollbar) {
+  display: none;
+}
+
+/* 顶部导航 */
+
 .page-top-header {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(84px, 1fr) auto minmax(36px, 1fr);
   align-items: center;
-  margin-bottom: 18px;
+  margin-bottom: 12px;
 }
 
 .back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+
+  padding: 0;
+
+  font-size: 14px;
+  color: #94a3b8;
+
   background: none;
   border: none;
-  color: #94a3b8;
-  font-size: 14px;
   cursor: pointer;
 }
 
 .nav-title {
-  font-size: 18px;
-  font-weight: 700;
-  color: #f8fafc;
   margin: 0;
+
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0;
+  color: #f8fafc;
 }
 
 .share-btn {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  justify-self: end;
+
+  color: #94a3b8;
+
   background: rgba(30, 41, 59, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  color: #94a3b8;
   cursor: pointer;
 }
+
+/* 结果区域 */
 
 .results-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
 }
+
+/* 推荐度与商品卡 */
 
 .top-hero-row {
   display: grid;
-  grid-template-columns: 180px 1fr;
-  gap: 14px;
-}
-
-@media (max-width: 580px) {
-  .top-hero-row {
-    grid-template-columns: 1fr;
-  }
-}
-
-.conclusion-banner {
-  display: flex;
+  grid-template-columns: 128px minmax(0, 1fr);
+  column-gap: 14px;
   align-items: center;
-  gap: 12px;
-  background: rgba(6, 182, 212, 0.1);
-  border: 1px solid rgba(6, 182, 212, 0.35);
-  border-radius: 16px;
-  padding: 14px 18px;
-  backdrop-filter: blur(10px);
+
+  width: 100%;
+  max-width: 100%;
+  min-height: 132px;
+  padding: 0;
+  overflow: hidden;
+
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
-.shield-icon {
-  font-size: 24px;
+.hero-gauge,
+.hero-product {
+  min-width: 0;
+}
+
+/* 综合评价 */
+
+.overall-rating-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+
+  height: 24px;
+  margin-top: -6px;
+
+  font-size: 12px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.overall-rating-row svg {
   flex-shrink: 0;
+  color: #69e7dc;
 }
 
-.conclusion-text {
-  font-size: 14px;
-  color: #e2e8f0;
-  line-height: 1.5;
-}
-
-.highlight-text {
-  color: #38bdf8;
-}
+/* 证据区域 */
 
 .evidence-group {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
+  margin-top: 6px;
 }
+
+/* 横评入口 */
 
 .comparison-bar {
   display: flex;
   justify-content: center;
+  margin-top: 12px;
 }
 
 .comparison-action-btn {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  justify-content: center;
+
   width: 100%;
-  padding: 12px;
-  background: rgba(30, 41, 59, 0.6);
-  border: 1px dashed rgba(56, 189, 248, 0.3);
-  border-radius: 14px;
-  color: #38bdf8;
-  font-size: 14px;
-  font-weight: 600;
+  min-height: 42px;
+  padding: 10px 12px;
+
+  font-size: 12px;
+  font-weight: 400;
+  color: #8ec1ff;
+
+  background: rgba(19, 31, 45, 0.68);
+  border: 1px solid rgba(90, 167, 255, 0.18);
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s ease;
+
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease;
 }
 
 .comparison-action-btn:hover {
-  background: rgba(56, 189, 248, 0.15);
-  border-color: #38bdf8;
+  background: rgba(90, 167, 255, 0.11);
+  border-color: rgba(90, 167, 255, 0.28);
 }
+
+.comparison-action-btn:active {
+  background: rgba(90, 167, 255, 0.15);
+}
+
+/* 底部说明 */
 
 .disclaimer-footer {
-  text-align: center;
-  font-size: 12px;
-  color: #64748b;
-  margin-top: 10px;
-}
-
-.modal-loading-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(10, 15, 29, 0.7);
   display: flex;
+  gap: 5px;
   align-items: center;
   justify-content: center;
-  z-index: 99;
+
+  margin-top: 10px;
+
+  font-size: 12px;
+  color: #64748b;
+  text-align: center;
 }
 
-.loading-box {
-  background: #0f172a;
-  color: #38bdf8;
-  padding: 16px 24px;
-  border-radius: 12px;
-  border: 1px solid rgba(56, 189, 248, 0.3);
+.disclaimer-footer svg {
+  flex-shrink: 0;
+}
+
+/* 响应式 */
+
+@media (max-width: 580px) {
+  .top-hero-row {
+    grid-template-columns: 128px minmax(0, 1fr);
+    column-gap: 14px;
+    min-height: 132px;
+  }
+}
+
+@media (max-width: 390px) {
+  .verification-page-shell {
+    max-width: 100%;
+  }
+
+  .page-top-header {
+    grid-template-columns: minmax(76px, 1fr) auto minmax(34px, 1fr);
+  }
+
+  .back-link {
+    font-size: 13px;
+  }
+
+  .nav-title {
+    font-size: 22px;
+  }
+
+  .results-wrapper {
+    gap: 16px;
+  }
+}
+
+@media (max-width: 370px) {
+  .top-hero-row {
+    grid-template-columns: 118px minmax(0, 1fr);
+    column-gap: 10px;
+  }
 }
 </style>

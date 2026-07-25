@@ -1,7 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { ChevronRight, ShoppingCart, X } from 'lucide-vue-next'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const showChannelsModal = ref(false)
+
+const emit = defineEmits<{
+  navigate: []
+}>()
 
 const channels = [
   { platform: '天猫旗舰店', price: '￥329', tag: '券后秒杀' },
@@ -11,7 +18,8 @@ const channels = [
 ]
 
 function openModal() {
-  showChannelsModal.value = true
+  emit('navigate')
+  router.push('/price-comparison')
 }
 
 function closeModal() {
@@ -25,16 +33,12 @@ function closeModal() {
     <div class="purple-glow-card" @click="openModal">
       <div class="card-left-section">
         <div class="cart-icon-box">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="9" cy="21" r="1"></circle>
-            <circle cx="20" cy="21" r="1"></circle>
-            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-          </svg>
+          <ShoppingCart :size="19" :stroke-width="1.8" />
         </div>
         <div class="text-group">
           <div class="title-row">
             <span class="main-title">查看全网低价</span>
-            <span class="arrow-sym">&gt;</span>
+            <ChevronRight class="arrow-sym" :size="15" :stroke-width="1.8" />
           </div>
           <span class="sub-title">汇总多渠道价格，帮你省更多</span>
         </div>
@@ -59,7 +63,9 @@ function closeModal() {
             <h3>全网比价汇总 (12个渠道)</h3>
             <span class="demo-tag">演示数据，仅用于功能展示</span>
           </div>
-          <button class="close-btn" @click="closeModal">✕</button>
+          <button class="close-btn" aria-label="关闭" @click="closeModal">
+            <X :size="18" :stroke-width="1.8" />
+          </button>
         </div>
 
         <div class="channel-list">
@@ -90,32 +96,36 @@ function closeModal() {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(135deg, rgba(88, 28, 135, 0.7), rgba(30, 64, 175, 0.7));
-  border: 1.5px solid rgba(168, 85, 247, 0.5);
-  border-radius: 10px;
-  padding: 14px 16px;
+  background:
+    radial-gradient(circle at 0% 50%, rgba(98, 80, 255, 0.16), transparent 42%),
+    rgba(13, 24, 38, 0.82);
+  border: 1px solid rgba(132, 112, 255, 0.24);
+  border-radius: 14px;
+  padding: 16px 12px;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(126, 34, 206, 0.35);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    0 8px 18px rgba(0, 0, 0, 0.14);
   transition: all 0.2s ease;
 }
 
 .purple-glow-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(126, 34, 206, 0.5);
-  border-color: rgba(168, 85, 247, 0.8);
+  background: rgba(18, 31, 49, 0.88);
+  border-color: rgba(132, 112, 255, 0.32);
 }
 
 .card-left-section {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .cart-icon-box {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #7c3aed, #2563eb);
+  background: transparent;
+  border: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -135,19 +145,19 @@ function closeModal() {
 
 .main-title {
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 500;
   color: #ffffff;
 }
 
 .arrow-sym {
-  font-size: 13px;
   color: #c084fc;
 }
 
 .sub-title {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.7);
-  margin-top: 2px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.52);
+  margin-top: 6px;
 }
 
 .card-right-section {
@@ -164,16 +174,16 @@ function closeModal() {
 
 .badge {
   font-size: 9px;
-  font-weight: 700;
+  font-weight: 500;
   padding: 2px 5px;
   border-radius: 4px;
   color: #ffffff;
 }
 
-.tmall { background: #ff0036; }
-.xianyu { background: #00b2ff; }
-.tiktok { background: #161823; }
-.pdd { background: #e02e24; }
+.tmall { background: rgba(255, 72, 92, 0.52); }
+.xianyu { background: rgba(90, 167, 255, 0.42); }
+.tiktok { background: rgba(255, 255, 255, 0.08); }
+.pdd { background: rgba(255, 72, 92, 0.44); }
 
 .summary-text {
   font-size: 10px;
@@ -215,18 +225,23 @@ function closeModal() {
 .modal-header h3 {
   margin: 0 0 2px;
   font-size: 15px;
+  font-weight: 600;
 }
 
 .demo-tag {
-  font-size: 10px;
+  font-size: 11px;
+  font-weight: 400;
   color: #64748b;
 }
 
 .close-btn {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
   background: none;
   border: none;
   color: #64748b;
-  font-size: 16px;
   cursor: pointer;
 }
 
@@ -257,7 +272,8 @@ function closeModal() {
 }
 
 .tag-chip {
-  font-size: 10px;
+  font-size: 12px;
+  font-weight: 400;
   color: #38bdf8;
 }
 
@@ -269,7 +285,7 @@ function closeModal() {
 
 .price-val {
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 600;
   color: #f43f5e;
 }
 
@@ -280,6 +296,7 @@ function closeModal() {
   padding: 4px 10px;
   border-radius: 6px;
   font-size: 11px;
+  font-weight: 500;
   cursor: pointer;
 }
 
@@ -291,6 +308,7 @@ function closeModal() {
   border-radius: 8px;
   color: #94a3b8;
   font-size: 12px;
+  font-weight: 500;
   cursor: pointer;
 }
 </style>

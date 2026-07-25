@@ -23,9 +23,7 @@ defineProps<{
         <h3 class="product-title">
           {{ product?.product_name || '轻量化电竞鼠标 G Pro' }}
         </h3>
-        <span class="category-name">
-          {{ categoryName || '鼠标/电竞游戏鼠标' }}
-        </span>
+        <p class="product-features">轻量化 · 无线连接 · 电竞使用</p>
       </div>
     </div>
   </div>
@@ -34,12 +32,16 @@ defineProps<{
 <style scoped>
 .product-hero-card-container {
   width: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .hero-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  align-items: start;
+  column-gap: 12px;
+  min-width: 0;
   background: transparent;
   border: none;
   border-radius: 0;
@@ -47,10 +49,16 @@ defineProps<{
 }
 
 .product-thumb-slot {
-  width: 72px;
-  height: 72px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.05);
+  width: 92px;
+  height: 92px;
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 35% 22%, rgba(255, 255, 255, 0.1), transparent 42%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.025));
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.045),
+    0 12px 24px rgba(0, 0, 0, 0.18);
   flex-shrink: 0;
   overflow: hidden;
 }
@@ -64,21 +72,33 @@ defineProps<{
 .product-info-col {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 0;
   flex: 1;
+  min-width: 0;
+  padding-top: 0;
 }
 
 .product-title {
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 500;
   color: #ffffff;
   margin: 0;
-  line-height: 1.3;
+  line-height: 1.48;
+  letter-spacing: 0;
+  word-break: normal;
+  overflow-wrap: break-word;
 }
 
-.category-name {
+.product-features {
+  margin: 8px 0 0;
+  color: rgba(255, 255, 255, 0.46);
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.5);
+  font-weight: 400;
+  line-height: 1.5;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: clip;
 }
 
 .tag-badge-row {
@@ -95,5 +115,40 @@ defineProps<{
   border: 1px solid rgba(56, 189, 248, 0.25);
   padding: 2px 8px;
   border-radius: 12px;
+}
+
+@media (max-width: 390px) {
+  .hero-card {
+    column-gap: 12px;
+  }
+
+  .product-thumb-slot {
+    width: 92px;
+    height: 92px;
+    border-radius: 16px;
+  }
+
+  .product-title {
+    font-size: 13px;
+    line-height: 1.48;
+  }
+
+}
+
+@media (max-width: 370px) {
+  .hero-card {
+    grid-template-columns: 82px minmax(0, 1fr);
+    column-gap: 10px;
+  }
+
+  .product-thumb-slot {
+    width: 82px;
+    height: 82px;
+    border-radius: 14px;
+  }
+
+  .product-title {
+    font-size: 13px;
+  }
 }
 </style>
