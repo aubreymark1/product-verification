@@ -1,0 +1,6 @@
+{
+  "items": [
+    {"product_id": "demo_product_001", "category_id": "demo_category", "product_name": "商品A", "confidence": 0.91, "image_url": null},
+    {"product_id": "demo_product_002", "category_id": "demo_category", "product_name": "商品B", "confidence": 0.63, "image_url": null}
+  ]
+}

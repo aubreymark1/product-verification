@@ -1,0 +1,5 @@
+{
+  "items": [
+    {"comparison_id": "comparison_demo_001", "product_ids": ["demo_product_001"], "status": "placeholder", "message": "横评功能将在第二阶段接入。"}
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "items": [
+    {
+      "evidence_id": "evidence_demo_support",
+      "product_id": "demo_product_001",
+      "category_id": "demo_category",
+      "dimension": "support",
+      "source_type": "demo_mock",
+      "relation_level": "exact_product",
+      "summary": "演示用支持证据摘要。",
+      "content": "这是用于联调的中性占位内容，不代表真实商品、参数或测评。",
+      "source_title": "演示来源 A",
+      "source_platform": "demo",
+      "source_url": null,
+      "published_at": null,
+      "confidence": 0.88
+    },
+    {
+      "evidence_id": "evidence_demo_risk",
+      "product_id": "demo_product_001",
+      "category_id": "demo_category",
+      "dimension": "risk",
+      "source_type": "demo_mock",
+      "relation_level": "likely_same_product",
+      "summary": "演示用风险证据摘要。",
+      "content": "这是用于联调的中性占位内容，后续由证据检索模块替换。",
+      "source_title": "演示来源 B",
+      "source_platform": "demo",
+      "source_url": null,
+      "published_at": null,
+      "confidence": 0.71
+    },
+    {
+      "evidence_id": "evidence_demo_uncertain",
+      "product_id": "demo_product_001",
+      "category_id": "demo_category",
+      "dimension": "identity",
+      "source_type": "demo_mock",
+      "relation_level": "similar_product",
+      "summary": "演示用待确认项摘要。",
+      "content": "这是用于联调的中性占位内容，表示当前证据不足。",
+      "source_title": "演示来源 C",
+      "source_platform": "demo",
+      "source_url": null,
+      "published_at": null,
+      "confidence": 0.42
+    }
+  ]
+}
