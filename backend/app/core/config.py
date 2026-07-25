@@ -7,6 +7,13 @@ class Settings:
     app_env: str = os.getenv("APP_ENV", "development")
     backend_host: str = os.getenv("BACKEND_HOST", "127.0.0.1")
     backend_port: int = int(os.getenv("BACKEND_PORT", "8000"))
+    openai_api_key: str | None = os.getenv("OPENAI_API_KEY") or os.getenv("LLM_API_KEY")
+    openai_base_url: str = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
+    openai_model: str = os.getenv("OPENAI_MODEL", "gpt-5.6-luna")
+    openai_timeout_seconds: float = float(os.getenv("OPENAI_TIMEOUT_SECONDS", "20"))
+    openai_vision_enabled: bool = os.getenv("OPENAI_VISION_ENABLED", "false").lower() == "true"
+    vision_frame_dir: str | None = os.getenv("VISION_FRAME_DIR")
+    openai_vision_context: str = os.getenv("OPENAI_VISION_CONTEXT", "")
 
 
 settings = Settings()

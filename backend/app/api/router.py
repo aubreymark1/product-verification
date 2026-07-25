@@ -10,13 +10,17 @@ from app.schemas.contracts import (
     ComparisonResult,
     Evidence,
     IdentifyResult,
+    RerunRecommendationRequest,
     SelectionRequest,
     VerificationRequest,
-    VerificationResult,
     Video,
 )
+from app.services.verification.service import NoAlternativeProductError, VerificationService
+from app.services.vision.service import VisionService
 
 router = APIRouter()
+vision_service = VisionService()
+verification_service = VerificationService()
 
 
 def ok(data: object) -> dict[str, object]:
@@ -30,6 +34,15 @@ def not_found(message: str) -> JSONResponse:
         error=ApiError(code="NOT_FOUND", message=message),
     ).model_dump()
     return JSONResponse(status_code=404, content=payload)
+
+
+def conflict(message: str) -> JSONResponse:
+    payload = ApiResponse(
+        success=False,
+        data=None,
+        error=ApiError(code="NO_ALTERNATIVE_PRODUCT", message=message),
+    ).model_dump()
+    return JSONResponse(status_code=409, content=payload)
 
 
 @router.get("/health", response_model=ApiResponse)
@@ -48,22 +61,8 @@ def get_video(video_id: str) -> dict[str, object] | JSONResponse:
 @router.post("/vision/identify", response_model=ApiResponse)
 def identify(selection: SelectionRequest) -> dict[str, object] | JSONResponse:
     try:
-        video = mock_store.find_by_id("videos.json", "video_id", selection.video_id)
-        detected_object = video["objects"][0]
-        object_id = detected_object["object_id"]
-        profile = mock_store.find_by_id("category-profiles.json", "category_id", detected_object["category_id"])
-        candidates = [
-            item for item in mock_store.list("products.json")
-            if item["category_id"] == detected_object["category_id"]
-        ]
-        result = {
-            "category_id": detected_object["category_id"],
-            "category_name": profile["category_name"],
-            "visual_attributes": {"object_id": object_id, "selection_status": "mock_identified"},
-            "candidates": candidates,
-        }
-        return ok(IdentifyResult.model_validate(result))
-    except MockDataNotFound as exc:
+        return ok(vision_service.identify(selection))
+    except (MockDataNotFound, FileNotFoundError) as exc:
         return not_found(str(exc))
 
 
@@ -81,11 +80,24 @@ def get_profile(category_id: str) -> dict[str, object] | JSONResponse:
 @router.post("/verification/run", response_model=ApiResponse)
 def run_verification(request: VerificationRequest) -> dict[str, object] | JSONResponse:
     try:
-        result = mock_store.find_by_id("verification-results.json", "product_id", request.product_id)
-        result["conditions"] = request.conditions
-        return ok(VerificationResult.model_validate(result))
+        return ok(verification_service.run(request))
     except MockDataNotFound as exc:
         return not_found(str(exc))
+
+
+@router.post("/recommendations/rerun", response_model=ApiResponse)
+def rerun_recommendation(request: RerunRecommendationRequest) -> dict[str, object] | JSONResponse:
+    try:
+        return ok(verification_service.rerun(request))
+    except MockDataNotFound as exc:
+        return not_found(str(exc))
+    except NoAlternativeProductError as exc:
+        return conflict(str(exc))
+
+
+@router.get("/purchase-channels/{product_id}", response_model=ApiResponse)
+def get_purchase_channels(product_id: str) -> dict[str, object]:
+    return ok(verification_service.purchase_channels(product_id))
 
 
 @router.get("/evidence/{evidence_id}", response_model=ApiResponse)

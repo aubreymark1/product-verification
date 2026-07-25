@@ -38,6 +38,31 @@ def test_mock_flow_contract() -> None:
     )
     assert result.status_code == 200
     assert result.json()["data"]["summary"]
+    assert 0 <= result.json()["data"]["recommendation_score"] <= 1
+    assert result.json()["data"]["round"] == 1
+
+    rerun = client.post(
+        "/api/recommendations/rerun",
+        json={
+            "video_id": "video_demo",
+            "product_id": candidate["product_id"],
+            "category_id": "demo_category",
+            "previous_result_id": result.json()["data"]["result_id"],
+            "dissatisfaction_reasons": ["预算不合适"],
+            "dissatisfaction_note": "希望更轻便",
+            "inherit_previous_needs": True,
+            "conditions_patch": {},
+            "raw_query": "",
+        },
+    )
+    assert rerun.status_code == 200
+    assert rerun.json()["data"]["round"] == 2
+    assert rerun.json()["data"]["is_follow_up"] is True
+    assert rerun.json()["data"]["needs_inherited"] is True
+
+    channels = client.get(f"/api/purchase-channels/{candidate['product_id']}")
+    assert channels.status_code == 200
+    assert channels.json()["data"] == []
 
 
 def test_unknown_entity_returns_api_error() -> None:
