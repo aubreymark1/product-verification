@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { SearchCheck } from 'lucide-vue-next'
+import { Check } from 'lucide-vue-next'
 
 defineProps<{
   productName: string
@@ -9,7 +9,7 @@ defineProps<{
 <template>
   <div class="verification-summary">
     <div class="verification-summary__icon">
-      <SearchCheck :size="19" :stroke-width="1.8" />
+      <Check :size="20" :stroke-width="2.4" />
     </div>
     <div class="verification-summary__text">
       当前证据支持<strong class="verification-summary__highlight">{{ productName }}</strong>较好满足你的需求，整体推荐购买。
@@ -28,41 +28,28 @@ defineProps<{
   grid-template-columns: 36px minmax(0, 1fr);
   column-gap: 12px;
   padding: 14px 16px;
-  background:
-    radial-gradient(
-      ellipse at 0% 50%,
-      rgba(26, 222, 207, 0.17),
-      transparent 44%
-    ),
-    radial-gradient(
-      ellipse at 100% 50%,
-      rgba(39, 105, 255, 0.11),
-      transparent 48%
-    ),
-    linear-gradient(
-      105deg,
-      rgba(7, 41, 47, 0.94),
-      rgba(5, 17, 29, 0.98) 52%,
-      rgba(8, 21, 41, 0.97)
-    );
-  border: 1px solid rgba(76, 219, 227, 0.26);
+  background: #07111d;
+  border: 1px solid rgba(95, 205, 255, 0.58);
   border-radius: 14px;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    0 8px 24px rgba(0, 0, 0, 0.18);
+    inset 0 0 18px rgba(105, 231, 220, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 0 0 1px rgba(105, 231, 220, 0.08),
+    0 0 20px rgba(105, 231, 220, 0.22),
+    0 0 28px rgba(59, 130, 246, 0.16),
+    0 10px 24px rgba(0, 0, 0, 0.22);
 }
 
 .verification-summary::after {
-  content: '';
   position: absolute;
-  inset: 0;
+  inset: 1px;
   pointer-events: none;
-  background: linear-gradient(
-    110deg,
-    transparent 20%,
-    rgba(255, 255, 255, 0.035) 45%,
-    transparent 68%
-  );
+  border: 1px solid rgba(105, 231, 220, 0.14);
+  border-radius: 13px;
+  box-shadow:
+    inset 0 0 18px rgba(105, 231, 220, 0.06),
+    inset 0 0 28px rgba(59, 130, 246, 0.04);
+  content: "";
 }
 
 .verification-summary__icon {
@@ -73,9 +60,6 @@ defineProps<{
   display: grid;
   place-items: center;
   color: #69e7dc;
-  background: rgba(35, 211, 196, 0.11);
-  border: 1px solid rgba(78, 229, 216, 0.2);
-  border-radius: 12px;
 }
 
 .verification-summary__text {
@@ -90,7 +74,8 @@ defineProps<{
 
 .verification-summary__highlight {
   color: #69e7dc;
-  font-weight: 600;
+  font-weight: 700;
+  text-shadow: 0 0 14px rgba(105, 231, 220, 0.28);
 }
 
 @media (max-width: 390px) {

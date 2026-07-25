@@ -393,8 +393,8 @@ function confirmPurchase() {
 .price-header h1 {
   margin: 0;
   color: #f8fafc;
-  font-size: 20px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 500;
   line-height: 1.25;
   text-align: center;
 }
@@ -457,7 +457,7 @@ function confirmPurchase() {
   grid-template-columns: 98px minmax(0, 1fr);
   gap: 12px;
   align-items: center;
-  min-height: 132px;
+  min-height: 128px;
   margin-top: 12px;
   padding: 14px;
   background:
@@ -491,9 +491,9 @@ function confirmPurchase() {
   align-items: center;
   margin: 0 0 8px;
   color: #ffffff;
-  font-size: 17px;
-  font-weight: 700;
-  line-height: 1.28;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.34;
 }
 
 .ai-recommended {
@@ -503,8 +503,8 @@ function confirmPurchase() {
   background: rgba(35, 211, 196, 0.12);
   border: 1px solid rgba(105, 231, 220, 0.18);
   border-radius: 6px;
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 10px;
+  font-weight: 600;
 }
 
 .product-tags {
@@ -512,8 +512,8 @@ function confirmPurchase() {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 5px 10px;
   color: #91a4bb;
-  font-size: 12px;
-  line-height: 1.25;
+  font-size: 11px;
+  line-height: 1.35;
 }
 
 .product-tags span::before {
@@ -525,7 +525,7 @@ function confirmPurchase() {
 .product-copy p {
   margin: 9px 0 0;
   color: #7f91a8;
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .price-filters {
@@ -547,23 +547,23 @@ function confirmPurchase() {
   white-space: nowrap;
   background: transparent;
   border: 0;
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .price-filters .filter-active {
   color: #69e7dc;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .channel-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
 .channel-card {
   position: relative;
-  padding: 15px 13px 13px;
+  padding: 16px 13px 14px;
   overflow: hidden;
   background: rgba(15, 23, 42, 0.74);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -586,8 +586,8 @@ function confirmPurchase() {
   color: #031014;
   background: #69e7dc;
   border-bottom-right-radius: 12px;
-  font-size: 12px;
-  font-weight: 800;
+  font-size: 11px;
+  font-weight: 600;
 }
 
 .channel-top {
@@ -640,8 +640,8 @@ function confirmPurchase() {
   margin: 0;
   overflow: hidden;
   color: #ffffff;
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 600;
   line-height: 1.25;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -654,7 +654,7 @@ function confirmPurchase() {
   background: rgba(35, 211, 196, 0.11);
   border-radius: 6px;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .channel-card--blue .score-pill {
@@ -677,14 +677,14 @@ function confirmPurchase() {
 
 .price-row strong {
   color: #ffffff;
-  font-size: 23px;
-  font-weight: 800;
+  font-size: 19px;
+  font-weight: 600;
   line-height: 1;
 }
 
 .price-row del {
   color: #64748b;
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .offer-chip {
@@ -694,14 +694,14 @@ function confirmPurchase() {
   background: rgba(255, 164, 48, 0.1);
   border: 1px solid rgba(255, 164, 48, 0.16);
   border-radius: 5px;
-  font-size: 11px;
+  font-size: 10px;
 }
 
 .service-line {
   margin-top: 9px;
   overflow: hidden;
   color: #8496ad;
-  font-size: 12px;
+  font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -715,14 +715,14 @@ function confirmPurchase() {
 }
 
 .buy-column button {
-  width: 68px;
-  min-height: 36px;
+  width: 64px;
+  min-height: 34px;
   color: #031014;
   background: #69e7dc;
   border: 0;
   border-radius: 9px;
-  font-size: 13px;
-  font-weight: 800;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .channel-card--blue .buy-column button {
@@ -737,7 +737,7 @@ function confirmPurchase() {
 
 .buy-column span {
   color: #7f91a8;
-  font-size: 11px;
+  font-size: 10px;
   white-space: nowrap;
 }
 
@@ -783,9 +783,9 @@ function confirmPurchase() {
 
 .channel-meta b {
   color: #cbd5e1;
-  font-size: 11px;
+  font-size: 10px;
   font-style: normal;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .stars {
@@ -843,7 +843,8 @@ function confirmPurchase() {
 
 .price-benefits b {
   color: #cbd5e1;
-  font-size: 12px;
+  font-size: 11px;
+  font-weight: 500;
 }
 
 .price-benefits small {
@@ -871,19 +872,19 @@ function confirmPurchase() {
 .price-footer div {
   min-width: 0;
   color: #cbd5e1;
-  font-size: 12px;
+  font-size: 11px;
   white-space: nowrap;
 }
 
 .price-footer span {
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .price-footer strong {
   margin-left: 4px;
   color: #ffc58b;
-  font-size: 21px;
-  font-weight: 800;
+  font-size: 18px;
+  font-weight: 600;
 }
 
 .price-footer small {
@@ -894,7 +895,7 @@ function confirmPurchase() {
   color: #ffc58b;
   background: rgba(255, 164, 48, 0.1);
   border-radius: 6px;
-  font-size: 11px;
+  font-size: 10px;
 }
 
 .price-footer button {
@@ -902,15 +903,15 @@ function confirmPurchase() {
   gap: 4px;
   align-items: center;
   justify-content: center;
-  min-width: 142px;
-  min-height: 46px;
+  min-width: 132px;
+  min-height: 42px;
   color: #031014;
   background: linear-gradient(135deg, #69e7dc, #8ec1ff);
   border: 0;
   border-radius: 12px;
   box-shadow: 0 10px 24px rgba(35, 211, 196, 0.22);
-  font-size: 15px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .purchase-backdrop {
@@ -939,8 +940,8 @@ function confirmPurchase() {
 .purchase-sheet h2 {
   margin: 0 0 12px;
   color: #ffffff;
-  font-size: 17px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 600;
 }
 
 .purchase-sheet p {
@@ -972,8 +973,8 @@ function confirmPurchase() {
 .purchase-actions button {
   min-height: 40px;
   border-radius: 9px;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .cancel-button {
@@ -991,7 +992,7 @@ function confirmPurchase() {
 .purchase-success {
   margin-top: 18px !important;
   color: #69e7dc !important;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 @media (max-width: 430px) {

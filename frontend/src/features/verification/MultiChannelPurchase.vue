@@ -40,18 +40,18 @@ function closeModal() {
             <span class="main-title">查看全网低价</span>
             <ChevronRight class="arrow-sym" :size="15" :stroke-width="1.8" />
           </div>
-          <span class="sub-title">汇总多渠道价格，帮你省更多</span>
+          <span class="sub-title">低价快比，放心买</span>
         </div>
       </div>
 
       <div class="card-right-section">
         <div class="platform-badges-row">
-          <span class="badge tmall">天猫</span>
-          <span class="badge xianyu">得物</span>
-          <span class="badge tiktok">抖音</span>
-          <span class="badge pdd">拼多</span>
+          <span class="app-icon app-icon--tmall" aria-label="天猫"></span>
+          <span class="app-icon app-icon--jd" aria-label="京东"></span>
+          <span class="summary-text">12源比价</span>
+          <span class="app-icon app-icon--douyin" aria-label="抖音"></span>
+          <span class="app-icon app-icon--pdd" aria-label="拼多多"></span>
         </div>
-        <span class="summary-text">已汇总 12 个渠道低价</span>
       </div>
     </div>
 
@@ -93,31 +93,79 @@ function closeModal() {
 }
 
 .purple-glow-card {
+  position: relative;
+  overflow: hidden;
   display: flex;
+  gap: 8px;
   justify-content: space-between;
   align-items: center;
   background:
-    radial-gradient(circle at 0% 50%, rgba(98, 80, 255, 0.16), transparent 42%),
+    radial-gradient(circle at 0% 50%, rgba(137, 65, 255, 0.18), transparent 42%),
     rgba(13, 24, 38, 0.82);
-  border: 1px solid rgba(132, 112, 255, 0.24);
+  border: 1px solid transparent;
   border-radius: 14px;
+  background-clip: padding-box;
   padding: 16px 12px;
   cursor: pointer;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    inset 0 0 16px rgba(166, 132, 255, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 0 18px rgba(164, 70, 255, 0.3),
+    0 0 26px rgba(31, 119, 255, 0.22),
     0 8px 18px rgba(0, 0, 0, 0.14);
   transition: all 0.2s ease;
 }
 
+.purple-glow-card::before {
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  pointer-events: none;
+  background: linear-gradient(105deg, #a744ff 0%, #7d42ff 34%, #1f7dff 72%, #2da9ff 100%);
+  border-radius: 14px;
+  content: "";
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+}
+
+.purple-glow-card::after {
+  position: absolute;
+  inset: 1px;
+  pointer-events: none;
+  border: 1px solid rgba(138, 92, 246, 0.14);
+  border-radius: 13px;
+  box-shadow:
+    inset 8px 0 20px rgba(164, 70, 255, 0.12),
+    inset -8px 0 20px rgba(31, 125, 255, 0.1),
+    0 0 24px rgba(164, 70, 255, 0.2),
+    0 0 30px rgba(31, 125, 255, 0.16);
+  content: "";
+}
+
 .purple-glow-card:hover {
   background: rgba(18, 31, 49, 0.88);
-  border-color: rgba(132, 112, 255, 0.32);
+  box-shadow:
+    inset 0 0 16px rgba(166, 132, 255, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 0 22px rgba(164, 70, 255, 0.38),
+    0 0 32px rgba(31, 119, 255, 0.28),
+    0 8px 18px rgba(0, 0, 0, 0.14);
 }
 
 .card-left-section {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: max-content;
 }
 
 .cart-icon-box {
@@ -135,18 +183,22 @@ function closeModal() {
 .text-group {
   display: flex;
   flex-direction: column;
+  min-width: max-content;
 }
 
 .title-row {
   display: flex;
   align-items: center;
   gap: 4px;
+  min-width: max-content;
 }
 
 .main-title {
+  flex: 0 0 auto;
   font-size: 15px;
   font-weight: 500;
   color: #ffffff;
+  white-space: nowrap;
 }
 
 .arrow-sym {
@@ -154,40 +206,198 @@ function closeModal() {
 }
 
 .sub-title {
+  display: block;
+  max-width: 118px;
+  overflow: hidden;
   font-size: 11px;
   font-weight: 400;
   color: rgba(255, 255, 255, 0.52);
   margin-top: 6px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .card-right-section {
+  position: relative;
+  z-index: 1;
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
   align-items: flex-end;
   gap: 4px;
+  min-width: 0;
 }
 
 .platform-badges-row {
   display: flex;
-  gap: 4px;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  overflow: hidden;
 }
 
-.badge {
-  font-size: 9px;
-  font-weight: 500;
-  padding: 2px 5px;
-  border-radius: 4px;
-  color: #ffffff;
+.app-icon {
+  position: relative;
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  overflow: hidden;
+  border-radius: 6px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 4px 10px rgba(0, 0, 0, 0.22);
 }
 
-.tmall { background: rgba(255, 72, 92, 0.52); }
-.xianyu { background: rgba(90, 167, 255, 0.42); }
-.tiktok { background: rgba(255, 255, 255, 0.08); }
-.pdd { background: rgba(255, 72, 92, 0.44); }
+.app-icon--tmall {
+  background: linear-gradient(145deg, #ff3150, #c8002b);
+}
+
+.app-icon--tmall::before {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  width: 12px;
+  height: 10px;
+  background: #fff;
+  border-radius: 6px 6px 4px 4px;
+  clip-path: polygon(0 30%, 17% 0, 32% 28%, 68% 28%, 83% 0, 100% 30%, 100% 100%, 0 100%);
+  content: "";
+}
+
+.app-icon--tmall::after {
+  position: absolute;
+  top: 10px;
+  left: 8px;
+  width: 2px;
+  height: 2px;
+  background: #c8002b;
+  border-radius: 50%;
+  box-shadow: 5px 0 0 #c8002b;
+  content: "";
+}
+
+.app-icon--jd {
+  background: linear-gradient(145deg, #f7f7fb, #dfe5f0);
+}
+
+.app-icon--jd::before {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  width: 12px;
+  height: 12px;
+  background: #d71024;
+  border-radius: 50%;
+  content: "";
+}
+
+.app-icon--jd::after {
+  position: absolute;
+  top: 9px;
+  left: 9px;
+  width: 4px;
+  height: 4px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 -5px 0 -1px #d71024, 5px -2px 0 -1px #d71024;
+  content: "";
+}
+
+.app-icon--douyin {
+  background: #05070b;
+}
+
+.app-icon--douyin::before {
+  position: absolute;
+  top: 4px;
+  left: 8px;
+  width: 7px;
+  height: 12px;
+  border-right: 3px solid #fff;
+  border-bottom: 3px solid #fff;
+  border-radius: 0 0 7px 7px;
+  box-shadow:
+    -2px 1px 0 #00f2ea,
+    2px -1px 0 #ff0050;
+  content: "";
+}
+
+.app-icon--douyin::after {
+  position: absolute;
+  top: 12px;
+  left: 5px;
+  width: 7px;
+  height: 7px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow:
+    -1px 1px 0 #00f2ea,
+    1px -1px 0 #ff0050;
+  content: "";
+}
+
+.app-icon--pdd {
+  background: linear-gradient(145deg, #ff4c5d, #d9192f);
+}
+
+.app-icon--pdd::before {
+  position: absolute;
+  inset: 5px;
+  background:
+    linear-gradient(45deg, transparent 40%, #fff 42% 58%, transparent 60%),
+    linear-gradient(-45deg, transparent 40%, #fff 42% 58%, transparent 60%);
+  border: 2px solid #fff;
+  border-radius: 3px;
+  transform: rotate(45deg);
+  content: "";
+}
 
 .summary-text {
+  flex: 0 0 auto;
+  padding: 3px 6px;
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+  line-height: 1;
+  color: rgba(230, 236, 255, 0.82);
+  white-space: nowrap;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(166, 132, 255, 0.16);
+  border-radius: 999px;
+}
+
+@media (max-width: 380px) {
+  .purple-glow-card {
+    padding: 14px 11px;
+  }
+
+  .cart-icon-box {
+    width: 40px;
+    height: 40px;
+  }
+
+  .sub-title {
+    max-width: 104px;
+  }
+
+  .summary-text {
+    display: none;
+  }
+}
+
+@media (max-width: 370px) {
+  .card-right-section {
+    display: none;
+  }
+
+  .sub-title {
+    max-width: 160px;
+  }
+}
+
+@media (max-width: 350px) {
+  .sub-title {
+    max-width: 136px;
+  }
 }
 
 /* Modal */

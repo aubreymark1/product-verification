@@ -202,7 +202,7 @@ async function openEvidenceDetail(id: string) {
         ></video>
 
         <!-- Bounding Rings around Target -->
-        <div class="target-bounding-overlay" @click.stop="openVerificationDrawer">
+        <div v-if="isPaused" class="target-bounding-overlay" @click.stop="openVerificationDrawer">
           <div class="clean-target-ring">
             <span class="target-dot"></span>
             <span class="target-name">无线游戏鼠标</span>
@@ -210,7 +210,7 @@ async function openEvidenceDetail(id: string) {
         </div>
 
         <!-- Floating Pill Button -->
-        <div class="floating-pill-position" @click.stop="openVerificationDrawer">
+        <div v-if="isPaused" class="floating-pill-position" @click.stop="openVerificationDrawer">
           <VerifyPillButton />
         </div>
 
@@ -378,7 +378,11 @@ async function openEvidenceDetail(id: string) {
           <RequirementTags :conditions="verificationResult?.conditions" />
 
           <div class="conclusion-banner">
-            <span class="check-icon">✓</span>
+            <span class="check-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false">
+                <path d="M5 12.5L9.4 17L19 7" />
+              </svg>
+            </span>
             <span class="banner-text">当前证据支持<strong>该鼠标能较好满足你的需求</strong>，整体推荐购买。</span>
           </div>
 
@@ -912,34 +916,74 @@ async function openEvidenceDetail(id: string) {
 }
 
 .conclusion-banner {
+  position: relative;
+  overflow: hidden;
   display: flex;
   align-items: center;
   gap: 10px;
-  background: rgba(16, 185, 129, 0.08);
-  border: 1px solid rgba(16, 185, 129, 0.35);
-  border-radius: 8px;
+  background: #07111d;
+  border: 1px solid rgba(95, 205, 255, 0.58);
+  border-radius: 10px;
   padding: 12px 14px;
   color: #ffffff;
   font-size: 13px;
   line-height: 1.4;
+  box-shadow:
+    inset 0 0 18px rgba(105, 231, 220, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 0 0 1px rgba(105, 231, 220, 0.08),
+    0 0 20px rgba(105, 231, 220, 0.22),
+    0 0 28px rgba(59, 130, 246, 0.16),
+    0 10px 24px rgba(0, 0, 0, 0.22);
+}
+
+.conclusion-banner::after {
+  position: absolute;
+  inset: 1px;
+  pointer-events: none;
+  border: 1px solid rgba(105, 231, 220, 0.14);
+  border-radius: 9px;
+  box-shadow:
+    inset 0 0 18px rgba(105, 231, 220, 0.06),
+    inset 0 0 28px rgba(59, 130, 246, 0.04);
+  content: "";
 }
 
 .conclusion-banner .check-icon {
+  position: relative;
+  z-index: 1;
   width: 22px;
   height: 22px;
-  border-radius: 50%;
-  background: #10b981;
-  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 800;
-  font-size: 12px;
   flex-shrink: 0;
+  color: #69e7dc;
+}
+
+.conclusion-banner .check-icon svg {
+  width: 22px;
+  height: 22px;
+  overflow: visible;
+}
+
+.conclusion-banner .check-icon path {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.8;
+}
+
+.conclusion-banner .banner-text {
+  position: relative;
+  z-index: 1;
 }
 
 .conclusion-banner strong {
-  color: #38bdf8;
+  color: #69e7dc;
+  font-weight: 700;
+  text-shadow: 0 0 14px rgba(105, 231, 220, 0.28);
 }
 
 .evidence-clean-list {

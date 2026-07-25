@@ -68,8 +68,9 @@ const percent = Math.round(props.score * 100)
 
 .ring-bg {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.08);
+  stroke: rgba(105, 231, 220, 0.12);
   stroke-width: 6;
+  filter: drop-shadow(0 0 5px rgba(105, 231, 220, 0.1));
 }
 
 .ring-progress {
@@ -78,7 +79,9 @@ const percent = Math.round(props.score * 100)
   stroke-linecap: round;
   stroke-dashoffset: 251.2;
   animation: gauge-progress-in 900ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  filter: drop-shadow(0 3px 7px rgba(39, 199, 217, 0.22));
+  filter:
+    drop-shadow(0 0 3px rgba(105, 231, 220, 0.54))
+    drop-shadow(0 0 8px rgba(98, 168, 255, 0.28));
 }
 
 .ring-content {
@@ -107,7 +110,7 @@ const percent = Math.round(props.score * 100)
 
 .ring-score .num {
   font-family: Inter, Arial, sans-serif;
-  font-size: 40px;
+  font-size: 32px;
   font-weight: 700;
   color: #f8fffe;
   line-height: 1;
@@ -116,7 +119,7 @@ const percent = Math.round(props.score * 100)
 }
 
 .ring-score .unit {
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 500;
   color: rgba(105, 231, 220, 0.92);
 }
@@ -128,7 +131,11 @@ const percent = Math.round(props.score * 100)
   }
 
   .ring-score .num {
-    font-size: 40px;
+    font-size: 30px;
+  }
+
+  .ring-score .unit {
+    font-size: 12px;
   }
 }
 
