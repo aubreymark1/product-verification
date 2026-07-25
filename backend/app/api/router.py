@@ -15,6 +15,7 @@ from app.schemas.contracts import (
     VerificationResult,
     Video,
 )
+from app.services.verification import build_fallback_verification
 
 router = APIRouter()
 
@@ -37,6 +38,8 @@ def health() -> dict[str, object]:
     return ok({"status": "ok", "environment": "development"})
 
 
+# ── 视频 ──────────────────────────────
+
 @router.get("/videos/{video_id}", response_model=ApiResponse)
 def get_video(video_id: str) -> dict[str, object] | JSONResponse:
     try:
@@ -45,12 +48,13 @@ def get_video(video_id: str) -> dict[str, object] | JSONResponse:
         return not_found(str(exc))
 
 
+# ── 视觉识别 ──────────────────────────
+
 @router.post("/vision/identify", response_model=ApiResponse)
 def identify(selection: SelectionRequest) -> dict[str, object] | JSONResponse:
     try:
         video = mock_store.find_by_id("videos.json", "video_id", selection.video_id)
         detected_object = video["objects"][0]
-        object_id = detected_object["object_id"]
         profile = mock_store.find_by_id("category-profiles.json", "category_id", detected_object["category_id"])
         candidates = [
             item for item in mock_store.list("products.json")
@@ -59,13 +63,15 @@ def identify(selection: SelectionRequest) -> dict[str, object] | JSONResponse:
         result = {
             "category_id": detected_object["category_id"],
             "category_name": profile["category_name"],
-            "visual_attributes": {"object_id": object_id, "selection_status": "mock_identified"},
+            "visual_attributes": {"object_id": detected_object.get("object_id", ""), "selection_status": "mock_identified"},
             "candidates": candidates,
         }
         return ok(IdentifyResult.model_validate(result))
     except MockDataNotFound as exc:
         return not_found(str(exc))
 
+
+# ── 品类配置 ──────────────────────────
 
 @router.get("/categories/{category_id}/profile", response_model=ApiResponse)
 def get_profile(category_id: str) -> dict[str, object] | JSONResponse:
@@ -78,15 +84,42 @@ def get_profile(category_id: str) -> dict[str, object] | JSONResponse:
         return not_found(str(exc))
 
 
+# ── 验证 ⭐ 核心 ───────────────────────
+
 @router.post("/verification/run", response_model=ApiResponse)
 def run_verification(request: VerificationRequest) -> dict[str, object] | JSONResponse:
+    # 优先从预置缓存读取
     try:
         result = mock_store.find_by_id("verification-results.json", "product_id", request.product_id)
         result["conditions"] = request.conditions
+        # 确保所有结论都有 source_ids
+        for key in ("support", "risks", "uncertain"):
+            result[key] = [
+                c for c in result.get(key, [])
+                if c.get("source_ids") and any(s for s in c["source_ids"] if s)
+            ]
         return ok(VerificationResult.model_validate(result))
-    except MockDataNotFound as exc:
-        return not_found(str(exc))
+    except MockDataNotFound:
+        pass
 
+    # 降级：基于证据检索构造验证结果
+    try:
+        product = mock_store.find_by_id("products.json", "product_id", request.product_id)
+    except MockDataNotFound:
+        return not_found(f"product_id not found: {request.product_id}")
+
+    fallback = build_fallback_verification(
+        product_id=request.product_id,
+        category_id=request.category_id,
+        conditions=request.conditions,
+        product_name=product.get("product_name", ""),
+        confidence=product.get("confidence", 0.85),
+        image_url=product.get("image_url"),
+    )
+    return ok(fallback)
+
+
+# ── 证据详情 ──────────────────────────
 
 @router.get("/evidence/{evidence_id}", response_model=ApiResponse)
 def get_evidence(evidence_id: str) -> dict[str, object] | JSONResponse:
@@ -98,6 +131,8 @@ def get_evidence(evidence_id: str) -> dict[str, object] | JSONResponse:
     except MockDataNotFound as exc:
         return not_found(str(exc))
 
+
+# ── 横评 ──────────────────────────────
 
 @router.post("/comparison/add", response_model=ApiResponse)
 def add_comparison(request: ComparisonRequest) -> dict[str, object]:
