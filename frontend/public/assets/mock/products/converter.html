@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <img id="target" src="http://localhost:8000/00835a05a0040412.jpg.avif">
+    <canvas id="canvas"></canvas>
+    <script>
+        window.onload = () => {
+            const img = document.getElementById('target');
+            const canvas = document.getElementById('canvas');
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            window.dataURL = canvas.toDataURL('image/jpeg', 0.95);
+        };
+    </script>
+</body>
+</html>

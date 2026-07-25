@@ -1,5 +1,10 @@
 {
   "items": [
-    {"comparison_id": "comparison_demo_001", "product_ids": ["demo_product_001"], "status": "placeholder", "message": "横评功能将在第二阶段接入。"}
+    {
+      "comparison_id": "comparison_demo_001",
+      "product_ids": ["atk_a9_ultimate", "logitech_gpw_1", "razer_viper_v3_pro", "vxe_r1_pro"],
+      "status": "placeholder",
+      "message": "横评功能将在第二阶段接入，当前已准备主商品与 3 款替代商品的占位数据。"
+    }
   ]
 }

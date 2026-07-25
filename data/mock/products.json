@@ -1,6 +1,48 @@
 {
   "items": [
-    {"product_id": "demo_product_001", "category_id": "demo_category", "product_name": "商品A", "confidence": 0.91, "image_url": null},
-    {"product_id": "demo_product_002", "category_id": "demo_category", "product_name": "商品B", "confidence": 0.63, "image_url": null}
+    {
+      "product_id": "atk_a9_ultimate",
+      "category_id": "gaming_mouse",
+      "product_name": "ATK A9 Ultimate 大师版",
+      "confidence": 0.98,
+      "image_url": "/assets/mock/products/62e1042760e7bac7a95e2a27a8bfde1e.png",
+      "brand": "ATK",
+      "price": 399.0,
+      "attributes": {
+        "sensor": "PAW3950 Ultra",
+        "weight": "47g",
+        "mcu": "Nordic 54L15",
+        "polling_rate": "8K",
+        "coating": "全新纳米涂层",
+        "battery_life": "600h+"
+      }
+    },
+    {
+      "product_id": "logitech_gpw_1",
+      "category_id": "gaming_mouse",
+      "product_name": "罗技 G Pro Wireless (GPW 一代)",
+      "confidence": 0.85,
+      "image_url": "/assets/mock/products/00835a05a0040412.jpg.avif",
+      "brand": "罗技",
+      "price": 399.0
+    },
+    {
+      "product_id": "razer_viper_v3_pro",
+      "category_id": "gaming_mouse",
+      "product_name": "雷蛇 毒蝰 V3 Pro",
+      "confidence": 0.92,
+      "image_url": "/assets/mock/products/00835a05a0bc137b.jpg.avif",
+      "brand": "雷蛇",
+      "price": 899.0
+    },
+    {
+      "product_id": "vxe_r1_pro",
+      "category_id": "gaming_mouse",
+      "product_name": "VXE 蜻蜓 R1 Pro",
+      "confidence": 0.8,
+      "image_url": "/assets/mock/products/f545edfaca10b0ad7150c14946e99d7c.png",
+      "brand": "VXE",
+      "price": 199.0
+    }
   ]
 }
