@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
 from app.database.mock_store import MockDataNotFound, mock_store
@@ -10,14 +10,19 @@ from app.schemas.contracts import (
     ComparisonResult,
     Evidence,
     IdentifyResult,
+    RerunRecommendationRequest,
     SelectionRequest,
     VerificationRequest,
-    VerificationResult,
     Video,
 )
-from app.services.verification import build_fallback_verification
+from app.services.retrieval import RetrievalService
+from app.services.verification.service import NoAlternativeProductError, VerificationService
+from app.services.vision.service import VisionService
 
 router = APIRouter()
+vision_service = VisionService()
+verification_service = VerificationService()
+retrieval_service = RetrievalService()
 
 
 def ok(data: object) -> dict[str, object]:
@@ -33,12 +38,37 @@ def not_found(message: str) -> JSONResponse:
     return JSONResponse(status_code=404, content=payload)
 
 
+def bad_request(code: str, message: str) -> JSONResponse:
+    payload = ApiResponse(
+        success=False,
+        data=None,
+        error=ApiError(code=code, message=message),
+    ).model_dump()
+    return JSONResponse(status_code=400, content=payload)
+
+
+def conflict(message: str) -> JSONResponse:
+    payload = ApiResponse(
+        success=False,
+        data=None,
+        error=ApiError(code="NO_ALTERNATIVE_PRODUCT", message=message),
+    ).model_dump()
+    return JSONResponse(status_code=409, content=payload)
+
+
+def internal_error(message: str = "服务器内部错误") -> JSONResponse:
+    payload = ApiResponse(
+        success=False,
+        data=None,
+        error=ApiError(code="INTERNAL_ERROR", message=message),
+    ).model_dump()
+    return JSONResponse(status_code=500, content=payload)
+
+
 @router.get("/health", response_model=ApiResponse)
 def health() -> dict[str, object]:
     return ok({"status": "ok", "environment": "development"})
 
-
-# ── 视频 ──────────────────────────────
 
 @router.get("/videos/{video_id}", response_model=ApiResponse)
 def get_video(video_id: str) -> dict[str, object] | JSONResponse:
@@ -48,30 +78,13 @@ def get_video(video_id: str) -> dict[str, object] | JSONResponse:
         return not_found(str(exc))
 
 
-# ── 视觉识别 ──────────────────────────
-
 @router.post("/vision/identify", response_model=ApiResponse)
 def identify(selection: SelectionRequest) -> dict[str, object] | JSONResponse:
     try:
-        video = mock_store.find_by_id("videos.json", "video_id", selection.video_id)
-        detected_object = video["objects"][0]
-        profile = mock_store.find_by_id("category-profiles.json", "category_id", detected_object["category_id"])
-        candidates = [
-            item for item in mock_store.list("products.json")
-            if item["category_id"] == detected_object["category_id"]
-        ]
-        result = {
-            "category_id": detected_object["category_id"],
-            "category_name": profile["category_name"],
-            "visual_attributes": {"object_id": detected_object.get("object_id", ""), "selection_status": "mock_identified"},
-            "candidates": candidates,
-        }
-        return ok(IdentifyResult.model_validate(result))
-    except MockDataNotFound as exc:
+        return ok(vision_service.identify(selection))
+    except (MockDataNotFound, FileNotFoundError) as exc:
         return not_found(str(exc))
 
-
-# ── 品类配置 ──────────────────────────
 
 @router.get("/categories/{category_id}/profile", response_model=ApiResponse)
 def get_profile(category_id: str) -> dict[str, object] | JSONResponse:
@@ -84,42 +97,28 @@ def get_profile(category_id: str) -> dict[str, object] | JSONResponse:
         return not_found(str(exc))
 
 
-# ── 验证 ⭐ 核心 ───────────────────────
-
 @router.post("/verification/run", response_model=ApiResponse)
 def run_verification(request: VerificationRequest) -> dict[str, object] | JSONResponse:
-    # 优先从预置缓存读取
     try:
-        result = mock_store.find_by_id("verification-results.json", "product_id", request.product_id)
-        result["conditions"] = request.conditions
-        # 确保所有结论都有 source_ids
-        for key in ("support", "risks", "uncertain"):
-            result[key] = [
-                c for c in result.get(key, [])
-                if c.get("source_ids") and any(s for s in c["source_ids"] if s)
-            ]
-        return ok(VerificationResult.model_validate(result))
-    except MockDataNotFound:
-        pass
+        return ok(verification_service.run(request))
+    except MockDataNotFound as exc:
+        return not_found(str(exc))
 
-    # 降级：基于证据检索构造验证结果
+
+@router.post("/recommendations/rerun", response_model=ApiResponse)
+def rerun_recommendation(request: RerunRecommendationRequest) -> dict[str, object] | JSONResponse:
     try:
-        product = mock_store.find_by_id("products.json", "product_id", request.product_id)
-    except MockDataNotFound:
-        return not_found(f"product_id not found: {request.product_id}")
-
-    fallback = build_fallback_verification(
-        product_id=request.product_id,
-        category_id=request.category_id,
-        conditions=request.conditions,
-        product_name=product.get("product_name", ""),
-        confidence=product.get("confidence", 0.85),
-        image_url=product.get("image_url"),
-    )
-    return ok(fallback)
+        return ok(verification_service.rerun(request))
+    except MockDataNotFound as exc:
+        return not_found(str(exc))
+    except NoAlternativeProductError as exc:
+        return conflict(str(exc))
 
 
-# ── 证据详情 ──────────────────────────
+@router.get("/purchase-channels/{product_id}", response_model=ApiResponse)
+def get_purchase_channels(product_id: str) -> dict[str, object]:
+    return ok(verification_service.purchase_channels(product_id))
+
 
 @router.get("/evidence/{evidence_id}", response_model=ApiResponse)
 def get_evidence(evidence_id: str) -> dict[str, object] | JSONResponse:
@@ -132,7 +131,18 @@ def get_evidence(evidence_id: str) -> dict[str, object] | JSONResponse:
         return not_found(str(exc))
 
 
-# ── 横评 ──────────────────────────────
+@router.get("/results/{result_id}", response_model=ApiResponse)
+def get_result(result_id: str) -> dict[str, object] | JSONResponse:
+    """按 result_id 恢复验证结果，支持刷新或重新打开结果链接。"""
+    try:
+        cached = getattr(verification_service, "_results", {})
+        result = retrieval_service.get_result(result_id, cached_results=cached)
+        if result is None:
+            return not_found(f"result_id not found: {result_id}")
+        return ok(result)
+    except Exception:
+        return internal_error("获取验证结果时发生内部错误")
+
 
 @router.post("/comparison/add", response_model=ApiResponse)
 def add_comparison(request: ComparisonRequest) -> dict[str, object]:
