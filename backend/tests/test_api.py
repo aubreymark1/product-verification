@@ -62,7 +62,8 @@ def test_mock_flow_contract() -> None:
 
     channels = client.get(f"/api/purchase-channels/{candidate['product_id']}")
     assert channels.status_code == 200
-    assert channels.json()["data"] == []
+    assert channels.json()["data"]
+    assert channels.json()["data"][0]["availability"] in {"available", "pending", "placeholder"}
 
 
 def test_unknown_entity_returns_api_error() -> None:

@@ -349,11 +349,28 @@ class VerificationService:
 
     def _purchase_channels(self, product_id: str) -> list[PurchaseChannel]:
         try:
-            return [
-                PurchaseChannel.model_validate(item)
-                for item in self.store.list("purchase-channels.json")
-                if item.get("product_id") == product_id
-            ]
+            normalized: list[PurchaseChannel] = []
+            channel_type_map = {
+                "抖音官方店": "official",
+                "抖音授权店": "official",
+                "天猫官方店": "official",
+                "京东自营": "marketplace",
+                "平台自营": "marketplace",
+            }
+            for item in self.store.list("purchase-channels.json"):
+                if item.get("product_id") != product_id:
+                    continue
+                payload = dict(item)
+                channel_type = str(payload.get("channel_type", ""))
+                payload["channel_type"] = channel_type_map.get(channel_type, channel_type or "other")
+                availability = payload.get("availability")
+                if availability not in {"available", "pending", "placeholder"}:
+                    status = str(payload.get("status", ""))
+                    availability = "available" if status == "现货" else "pending" if "预售" in status else "placeholder"
+                payload["availability"] = availability
+                payload["note"] = str(payload.get("note") or payload.get("policy") or payload.get("status") or "")
+                normalized.append(PurchaseChannel.model_validate(payload))
+            return normalized
         except (MockDataNotFound, ValueError):
             return []
 
