@@ -159,6 +159,25 @@
         "connectivity": "2.4GHz无线（专属增强基站）/USB有线双模"
       },
       "alternative_evidence": "经典低背对称鼻祖：FK 系列作为低背对称模具的开山之作，与 A9 一样擅长灵活的抓握与指握，物理定位感与平移拉枪极为稳定。独家强化抗干扰基站：随机配备大型无线增强接收基站（兼作充电座），在复杂的线下比赛或多无线设备环境下，信号抗干扰能力行业独一档。免驱直用与纯粹赛场设计：所有 DPI、回报率、响应时间均在鼠标底部通过物理按键调节，无需后台驱动，即插即用且稳定性极高。"
+    },
+    {
+      "product_id": "rapoo_vt3_max",
+      "category_id": "gaming_mouse",
+      "product_name": "雷柏 VT3 MAX 双8K无线电竞鼠标",
+      "confidence": 0.88,
+      "image_url": "/assets/mock/products/f8bc04ae77881e1edc52d5faeccb2123.jpg",
+      "brand": "雷柏",
+      "price": 299.0,
+      "relation_level": "similar_product",
+      "attributes": {
+        "sensor": "PAW3950 Ultimate",
+        "weight": "54g",
+        "mcu": "Nordic nRF54",
+        "polling_rate": "双8K（无线+有线）",
+        "battery_life": "180h-750h",
+        "connectivity": "2.4GHz无线/USB有线双模"
+      },
+      "alternative_evidence": "同款旗舰传感器对标：搭载与 ATK A9 大师版完全一致的 PAW3950 Ultimate 旗舰引擎，原生支持无线 8K + 有线 8K 回报率，响应延迟低至 0.125ms，纸面性能同级顶尖。右手人体工学差异化：采用非对称右手工学模具，背弓弧度优化提供更好的掌心支撑感，与 A9 的对称低背设计形成互补，适合偏好顶手心握感的趴握/抓握玩家。百元级高配置性价比：以不足 300 元的定价集齐 PAW3950 + Nordic nRF54 + 双 8K + 超长续航，在性能配置上直逼千元级旗舰，性价比极为突出。磁吸拓展充电生态：底部磁吸收纳仓支持无线充电拓展模块与触点充电底座，长期桌面使用可彻底摆脱线缆束缚。"
     }
   ]
 }
