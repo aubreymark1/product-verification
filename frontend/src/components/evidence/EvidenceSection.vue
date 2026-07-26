@@ -373,4 +373,69 @@ function toggleExpand() {
     transition: none;
   }
 }
+
+
+/* Douyin theme: Douyin light evidence cards. */
+.evidence-card {
+  color: #161823;
+  background: #ffffff;
+  border-color: #ececee;
+  box-shadow: 0 2px 10px rgba(22, 24, 35, 0.04);
+}
+
+.evidence-card--risk { border-color: rgba(254, 44, 85, 0.18); }
+.evidence-card--support { border-color: rgba(0, 207, 200, 0.22); }
+.evidence-card--pending { border-color: rgba(222, 145, 0, 0.2); }
+
+.evidence-card--risk .evidence-card__icon {
+  color: #fe2c55;
+  background: #fff0f3;
+  border-color: rgba(254, 44, 85, 0.16);
+}
+
+.evidence-card--support .evidence-card__icon {
+  color: #00a69f;
+  background: #edfbfa;
+  border-color: rgba(0, 207, 200, 0.18);
+}
+
+.evidence-card--pending .evidence-card__icon {
+  color: #c27b00;
+  background: #fff7e8;
+  border-color: rgba(222, 145, 0, 0.16);
+}
+
+.evidence-card__title { color: #24252b; }
+.evidence-card__meta span,
+.evidence-card__meta svg { color: #9a9ba1; }
+.evidence-card__meta .demo-count { color: #fe2c55; }
+
+.evidence-item {
+  color: #4c4d53;
+  background: #f7f7f8;
+  border-color: #eeeeef;
+}
+
+.evidence-item:hover {
+  color: #161823;
+  background: #f1f1f2;
+  border-color: #e5e5e7;
+}
+
+.evidence-item__icon { color: #a5a6ab; }
+.demo-review-evidence { border-top-color: #ececee; }
+.demo-review-evidence__heading { color: #929399; }
+.demo-review-evidence__heading span:last-child { color: #fe2c55; }
+
+.demo-insight-evidence__item,
+.demo-review-evidence__item {
+  background: #f7f7f8;
+  border-color: #ececee;
+}
+
+.demo-insight-evidence__item strong { color: #33343a; }
+.demo-insight-evidence__item p,
+.demo-review-evidence__item p { color: #606167; }
+.demo-review-evidence__meta { color: #008f89; }
+.demo-review-evidence__meta strong { color: #fe2c55; }
 </style>

@@ -646,4 +646,149 @@ function selectRecommendation(product: DisplayRecommendation) {
     justify-content: center;
   }
 }
+
+
+/* Douyin theme: Douyin light recommendation page. */
+:global(.page-shell:has(.recommendation-demo)) {
+  background: #ececee;
+}
+
+.smartphone-app-shell {
+  background: #ececee;
+}
+
+.phone-frame {
+  color: #161823;
+  background: #ffffff;
+  border-color: #161823;
+  box-shadow: 0 20px 50px rgba(22, 24, 35, 0.2);
+}
+
+.status-bar { color: #161823; }
+
+.recommendation-screen {
+  background: #f7f7f8;
+}
+
+.recommendation-page { color: #161823; }
+
+.recommendation-header {
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid #ececee;
+  box-shadow: 0 4px 14px rgba(22, 24, 35, 0.04);
+}
+
+.recommendation-header::after { display: none; }
+.recommendation-header h1 { color: #161823; font-weight: 600; }
+.icon-button { color: #34353b; }
+
+.ai-note,
+.requirements-summary {
+  background: #ffffff;
+  border-color: #ececee;
+  box-shadow: 0 2px 10px rgba(22, 24, 35, 0.04);
+}
+
+.ai-note { color: #616269; }
+.ai-note svg { color: #fe2c55; }
+
+.requirements-summary {
+  background: #edfbfa;
+  border-color: rgba(0, 207, 200, 0.2);
+}
+
+.summary-heading,
+.support-label { color: #24252b; }
+
+.summary-heading svg,
+.support-label svg { color: #00a69f; }
+
+.summary-items { color: #616269; }
+.summary-items span::before { color: #00a69f; }
+.section-note { color: #8a8b91; }
+
+.recommendation-card {
+  color: #161823;
+  background: #ffffff;
+  border-color: #e7e7e9;
+  box-shadow: 0 3px 14px rgba(22, 24, 35, 0.06);
+}
+
+.rank-label {
+  color: #ffffff;
+  background: #fe2c55;
+}
+
+.recommendation-image {
+  color: #7a7b81;
+  background: #f1f1f2;
+  border-color: #e5e5e7;
+}
+
+.recommendation-content h2,
+.recommendation-content h3 { color: #161823; }
+
+.product-type {
+  color: #64656b;
+  background: #f1f1f2;
+}
+
+.score-line { color: #fe2c55; }
+.review-reference { color: #8a8b91; }
+
+.review-reference em {
+  color: #b06f00;
+  background: #fff7e8;
+}
+
+.recommendation-content h3 svg { color: #00a69f; }
+
+.recommendation-content p,
+.recommendation-content li,
+.recommendation-details li { color: #66676d; }
+
+.recommendation-details .support-label { color: #34353b; }
+.recommendation-details .support-label svg { color: #00a69f; }
+
+.review-evidence-preview {
+  background: #f7f7f8;
+  border-color: #ececee;
+}
+
+.review-evidence-preview__heading { color: #8a8b91; }
+.review-evidence-preview__heading em { color: #fe2c55; }
+.review-evidence-preview p { color: #5f6066; }
+
+.source-line,
+.card-footer,
+.recommendation-details .source-line,
+.recommendation-details .card-footer {
+  color: #8a8b91;
+  border-color: #ececee;
+}
+
+.demo-source-note { color: #b06f00; }
+.card-footer > span strong,
+.recommendation-details .card-footer > span strong { color: #fe2c55; }
+
+.card-footer button,
+.primary-action {
+  color: #ffffff;
+  background: #fe2c55;
+  box-shadow: none;
+}
+
+.recommendation-footer {
+  background: rgba(255, 255, 255, 0.97);
+  border-top-color: #ececee;
+  box-shadow: 0 -8px 22px rgba(22, 24, 35, 0.08);
+}
+
+.secondary-action {
+  color: #161823;
+  background: #ffffff;
+  border-color: #d9d9dc;
+}
+
+.secondary-action:hover { background: #f5f5f6; }
 </style>

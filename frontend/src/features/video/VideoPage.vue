@@ -1624,4 +1624,89 @@ async function openEvidenceDetail(id: string) {
   background: #ffffff;
   border-radius: 10px;
 }
+
+
+/* Douyin theme: light content treatment for the opened verification drawer. */
+.section-subtitle,
+.product-sub-spec,
+.meta-label { color: #8a8b91; }
+
+.cand-card-item,
+.identified-product-card {
+  background: #f7f7f8;
+  border-color: #ededee;
+  border-radius: 10px;
+}
+
+.cand-card-item.selected {
+  background: #fff4f6;
+  border-color: rgba(254, 44, 85, 0.55);
+  box-shadow: 0 0 0 1px rgba(254, 44, 85, 0.08);
+}
+
+.card-left-img,
+.product-thumb { background: #ffffff; }
+.product-title-text,
+.meta-title { color: #161823; }
+.confidence-badge { color: #fe2c55; }
+
+.single-line-input-bar {
+  background: #f5f5f6;
+  border-color: #e7e7e9;
+  border-radius: 10px;
+}
+
+.single-line-input-bar.focused {
+  background: #ffffff;
+  border-color: rgba(254, 44, 85, 0.48);
+  box-shadow: 0 0 0 3px rgba(254, 44, 85, 0.08);
+}
+
+.single-input-field { color: #161823; }
+.single-input-field::placeholder { color: #a9a9ae; }
+
+.mic-circle-wrapper {
+  color: #73747a;
+  background: #ffffff;
+}
+
+.mic-circle-wrapper:hover {
+  color: #161823;
+  background: #ececee;
+}
+
+.mic-circle-wrapper.active {
+  color: #fe2c55;
+  background: #fff0f3;
+  box-shadow: 0 0 0 3px rgba(254, 44, 85, 0.1);
+}
+
+.natural-wave-ring { border-color: rgba(254, 44, 85, 0.5); }
+.restrained-primary-btn { background: #fe2c55; }
+.progress-linear-bar { background: #ececee; }
+.progress-linear-bar .fill,
+.check-row.active .dot { background: #fe2c55; }
+.progress-text { color: #fe2c55; }
+.check-row { color: #a3a3a8; }
+.check-row.active { color: #161823; }
+.check-row .dot { background: #d5d5d8; }
+.summary-single-line { color: #686970; }
+
+.conclusion-banner {
+  color: #282930;
+  background: #fff4f6;
+  border-color: rgba(254, 44, 85, 0.2);
+  box-shadow: 0 8px 22px rgba(254, 44, 85, 0.08);
+}
+
+.conclusion-banner::after {
+  border-color: rgba(255, 255, 255, 0.72);
+  box-shadow: none;
+}
+
+.conclusion-banner .check-icon,
+.conclusion-banner strong {
+  color: #fe2c55;
+  text-shadow: none;
+}
 </style>

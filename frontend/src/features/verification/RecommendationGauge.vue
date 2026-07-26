@@ -151,4 +151,21 @@ const percent = Math.round(props.score * 100)
     stroke-dashoffset: var(--ring-offset);
   }
 }
+
+
+/* Douyin theme: clean Douyin light gauge. */
+.ring-bg {
+  stroke: #ececee;
+  filter: none;
+}
+
+.ring-progress {
+  stroke: #fe2c55;
+  filter: none;
+}
+
+.ring-content { color: #fe2c55; }
+.ring-label { color: #8a8b91; }
+.ring-score .num { color: #161823; }
+.ring-score .unit { color: #fe2c55; }
 </style>

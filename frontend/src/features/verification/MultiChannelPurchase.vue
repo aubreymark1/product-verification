@@ -565,4 +565,57 @@ function closeModal() {
   font-weight: 500;
   cursor: pointer;
 }
+
+
+/* Douyin theme: Douyin light purchase entry and modal. */
+.purple-glow-card {
+  background: #ffffff;
+  border-color: #ececee;
+  box-shadow: 0 2px 12px rgba(22, 24, 35, 0.06);
+}
+
+.purple-glow-card::before,
+.purple-glow-card::after { display: none; }
+
+.purple-glow-card:hover {
+  background: #f7f7f8;
+  border-color: #e3e3e5;
+  box-shadow: 0 4px 16px rgba(22, 24, 35, 0.08);
+}
+
+.cart-icon-box {
+  color: #fe2c55;
+  background: #fff0f3;
+}
+
+.main-title { color: #161823; }
+.arrow-sym { color: #fe2c55; }
+.sub-title { color: #8a8b91; }
+
+.summary-text {
+  color: #66676d;
+  background: #f5f5f6;
+  border-color: #e6e6e8;
+}
+
+.modal-backdrop { background: rgba(0, 0, 0, 0.46); }
+
+.channel-modal {
+  color: #161823;
+  background: #ffffff;
+  border-color: #ececee;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.18);
+}
+
+.demo-tag,
+.close-btn { color: #8a8b91; }
+.channel-item { background: #f7f7f8; }
+.tag-chip { color: #008f89; }
+.price-val { color: #fe2c55; }
+.buy-btn { background: #fe2c55; }
+
+.modal-close-bar {
+  color: #5e5f65;
+  background: #f1f1f2;
+}
 </style>

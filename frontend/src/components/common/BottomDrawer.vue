@@ -142,4 +142,43 @@ const emit = defineEmits<{
   transform: translateY(100%);
   opacity: 0;
 }
+
+
+/* Douyin theme: Douyin-inspired light drawer theme. */
+.drawer-backdrop {
+  background: rgba(0, 0, 0, 0.46);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.drawer-panel {
+  color: #161823;
+  background: #ffffff;
+  border-color: rgba(22, 24, 35, 0.06);
+  border-top-left-radius: 18px;
+  border-top-right-radius: 18px;
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.18);
+}
+
+.handle { background: #d9d9dc; }
+.drawer-header { border-bottom-color: #f1f1f2; }
+.drawer-title { color: #161823; }
+
+.drawer-close-btn {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  color: #8a8b91;
+  background: #f5f5f6;
+  border-radius: 50%;
+}
+
+.drawer-close-btn:hover {
+  color: #161823;
+  background: #ececee;
+}
+
+.drawer-body { scrollbar-color: rgba(22, 24, 35, 0.22) transparent; }
+.drawer-body::-webkit-scrollbar-thumb { background: rgba(22, 24, 35, 0.18); }
+.drawer-body::-webkit-scrollbar-thumb:hover { background: rgba(22, 24, 35, 0.3); }
 </style>

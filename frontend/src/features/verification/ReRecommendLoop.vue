@@ -162,4 +162,27 @@ onUnmounted(() => {
   padding: 8px 0 16px;
 }
 
+
+
+/* Douyin theme: Douyin light secondary action. */
+.rerecommend-card {
+  background: #f7f7f8;
+  border-color: #ececee;
+}
+
+.rerecommend-card:hover {
+  background: #f1f1f2;
+  border-color: #e2e2e4;
+}
+
+.refresh-circle {
+  color: #fe2c55;
+  background: #fff0f3;
+}
+
+.title-text { color: #161823; }
+.arrow { color: #fe2c55; }
+.sub-text { color: #8a8b91; }
+.analysis-text { color: #4d4e54; }
+.ai-footer-disclaimer { color: #a0a1a6; }
 </style>

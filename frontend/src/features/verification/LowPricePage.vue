@@ -1089,4 +1089,246 @@ function confirmPurchase() {
     border-radius: 0;
   }
 }
+
+/* Douyin theme: Douyin light low-price page. */
+:global(.page-shell:has(.low-price-demo)) {
+  background: #ececee;
+}
+
+.smartphone-app-shell {
+  background: #ececee;
+}
+
+.phone-frame {
+  color: #161823;
+  background: #ffffff;
+  border-color: #161823;
+  box-shadow: 0 20px 50px rgba(22, 24, 35, 0.2);
+}
+
+.status-bar {
+  color: #161823;
+}
+
+.price-screen {
+  background: #f7f7f8;
+}
+
+.low-price-page {
+  color: #161823;
+}
+
+.price-header {
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid #ececee;
+  box-shadow: 0 4px 14px rgba(22, 24, 35, 0.04);
+}
+
+.price-header::after {
+  display: none;
+}
+
+.price-header h1 {
+  color: #161823;
+  font-weight: 600;
+}
+
+.icon-button {
+  color: #34353b;
+}
+
+.price-status,
+.product-price-summary,
+.channel-card,
+.price-benefits {
+  background: #ffffff;
+  border-color: #ececee;
+  box-shadow: 0 2px 12px rgba(22, 24, 35, 0.05);
+}
+
+.price-status {
+  color: #66676d;
+}
+
+.status-main svg,
+.updated svg {
+  color: #00a69f;
+}
+
+.updated {
+  color: #8a8b91;
+}
+
+.product-price-image {
+  color: #fe2c55;
+  background: #f1f1f2;
+  border-color: #e5e5e7;
+}
+
+.product-copy h2,
+.channel-heading h2 {
+  color: #161823;
+}
+
+.ai-recommended,
+.score-pill,
+.channel-card--blue .score-pill,
+.channel-card--violet .score-pill {
+  color: #008f89;
+  background: #edfbfa;
+  border-color: rgba(0, 166, 159, 0.16);
+}
+
+.product-tags,
+.product-copy p,
+.service-line,
+.buy-column span,
+.channel-meta span,
+.price-benefits,
+.price-benefits small {
+  color: #8a8b91;
+}
+
+.product-tags span::before,
+.demo-review-line {
+  color: #00a69f !important;
+}
+
+.price-filters button {
+  color: #66676d;
+}
+
+.price-filters .filter-active {
+  color: #fe2c55;
+}
+
+.channel-card.featured {
+  border-color: rgba(254, 44, 85, 0.3);
+  box-shadow:
+    0 0 0 1px rgba(254, 44, 85, 0.04),
+    0 4px 16px rgba(22, 24, 35, 0.07);
+}
+
+.current-badge {
+  color: #ffffff;
+  background: #fe2c55;
+}
+
+.channel-mark,
+.channel-card--blue .channel-mark,
+.channel-card--violet .channel-mark {
+  color: #fe2c55;
+  background: #fff0f3;
+  border-color: rgba(254, 44, 85, 0.14);
+}
+
+.price-row strong {
+  color: #fe2c55;
+}
+
+.price-row del {
+  color: #a0a1a7;
+}
+
+.offer-chip {
+  color: #b06f00;
+  background: #fff7e8;
+  border-color: #f3dfba;
+}
+
+.buy-column button,
+.channel-card--blue .buy-column button,
+.channel-card--violet .buy-column button {
+  color: #ffffff;
+  background: #fe2c55;
+}
+
+.channel-meta {
+  border-top-color: #ececee;
+}
+
+.channel-meta svg,
+.channel-card--blue .channel-meta svg,
+.channel-card--violet .channel-meta svg,
+.price-benefits svg {
+  color: #00a69f;
+}
+
+.channel-meta b,
+.price-benefits b {
+  color: #34353b;
+}
+
+.stars i {
+  color: #d9d9dc;
+}
+
+.stars i.filled,
+.channel-card--blue .stars i.filled,
+.channel-card--violet .stars i.filled {
+  color: #fe2c55;
+}
+
+.price-benefits span {
+  border-right-color: #ececee;
+}
+
+.price-footer {
+  background: rgba(255, 255, 255, 0.97);
+  border-top-color: #ececee;
+  box-shadow: 0 -8px 22px rgba(22, 24, 35, 0.08);
+}
+
+.price-footer div {
+  color: #5f6066;
+}
+
+.price-footer strong {
+  color: #fe2c55;
+}
+
+.price-footer small {
+  color: #b06f00;
+  background: #fff7e8;
+}
+
+.price-footer button {
+  color: #ffffff;
+  background: #fe2c55;
+  box-shadow: none;
+}
+
+.purchase-backdrop {
+  background: rgba(0, 0, 0, 0.46);
+}
+
+.purchase-sheet {
+  color: #161823;
+  background: #ffffff;
+  border-color: #ececee;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.18);
+}
+
+.purchase-sheet h2 {
+  color: #161823;
+}
+
+.purchase-sheet p,
+.purchase-close {
+  color: #8a8b91;
+}
+
+.cancel-button {
+  color: #5e5f65;
+  background: #f1f1f2;
+}
+
+.continue-button {
+  color: #ffffff;
+  background: #fe2c55;
+}
+
+.purchase-success {
+  color: #00a69f !important;
+}
 </style>

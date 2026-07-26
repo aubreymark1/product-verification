@@ -191,4 +191,41 @@ const requirements = computed<RequirementItem[]>(() => {
     padding: 0 5px;
   }
 }
+
+
+/* Douyin theme: Douyin light requirement chips. */
+.my-requirements-card {
+  background: #ffffff;
+  border-color: #ececee;
+  box-shadow: 0 2px 10px rgba(22, 24, 35, 0.04);
+}
+
+.card-title { color: #24252b; }
+
+.compact-req-tag {
+  color: #616269;
+  background: #f5f5f6;
+}
+
+.compact-req-tag.met {
+  color: #008f89;
+  background: #edfbfa;
+  border-color: rgba(0, 207, 200, 0.2);
+}
+
+.met-icon { color: #00a69f; }
+
+.compact-req-tag.unmet {
+  color: #d91f46;
+  background: #fff0f3;
+  border-color: rgba(254, 44, 85, 0.16);
+}
+
+.unmet-icon { color: #fe2c55; }
+
+.compact-req-tag.neutral {
+  color: #707178;
+  background: #f5f5f6;
+  border-color: #e8e8ea;
+}
 </style>

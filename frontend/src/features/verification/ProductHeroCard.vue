@@ -195,4 +195,30 @@ const averageRating = computed(() => {
   }
 
 }
+
+
+/* Douyin theme: Douyin light product summary. */
+.product-thumb-slot {
+  background: #f5f5f6;
+  border-color: #e8e8ea;
+  box-shadow: 0 4px 14px rgba(22, 24, 35, 0.08);
+}
+
+.product-title { color: #161823; }
+.product-features,
+.hero-review-summary { color: #8a8b91; }
+.hero-review-summary strong { color: #fe2c55; }
+.hero-review-label { color: #008f89; }
+
+.hero-demo-mark {
+  color: #fe2c55;
+  background: #fff0f3;
+  border-color: rgba(254, 44, 85, 0.16);
+}
+
+.game-badge {
+  color: #008f89;
+  background: #edfbfa;
+  border-color: rgba(0, 207, 200, 0.2);
+}
 </style>
