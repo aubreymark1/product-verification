@@ -2,6 +2,9 @@
 import { computed } from 'vue'
 import { CircleCheck, CircleX } from 'lucide-vue-next'
 
+import { extractRequirementKeywords } from './requirementKeywords'
+import type { RequirementAnalysisItem } from '../../types/api'
+
 export interface RequirementItem {
   key: string
   label: string
@@ -11,9 +14,32 @@ export interface RequirementItem {
 const props = defineProps<{
   conditions?: Record<string, unknown>
   rawQuery?: string
+  requirementAnalysis?: RequirementAnalysisItem[]
 }>()
 
 const requirements = computed<RequirementItem[]>(() => {
+  const analysisItems = props.requirementAnalysis || []
+  if (analysisItems.length > 0) {
+    return analysisItems.map((item) => ({
+      key: item.requirement_id,
+      label: item.value || item.label,
+      status: item.status === 'satisfied'
+        ? 'met'
+        : item.status === 'conflict'
+          ? 'unmet'
+          : 'neutral',
+    }))
+  }
+
+  const keywords = extractRequirementKeywords(props.rawQuery || '')
+  if (keywords.length > 0) {
+    return keywords.map((label, index) => ({
+      key: `query-${index}-${label}`,
+      label,
+      status: 'neutral',
+    }))
+  }
+
   const result: RequirementItem[] = []
   const conds = props.conditions || {}
 
@@ -21,7 +47,7 @@ const requirements = computed<RequirementItem[]>(() => {
     if (v === undefined || v === null || v === '') continue
 
     let label = ''
-    let status: 'met' | 'unmet' | 'neutral' = 'met'
+    const status: 'met' | 'unmet' | 'neutral' = 'neutral'
 
     if (Array.isArray(v)) {
       v.forEach((subItem) => {
@@ -37,10 +63,6 @@ const requirements = computed<RequirementItem[]>(() => {
       else continue
     } else if (typeof v === 'number') {
       label = `${k} <= ${v}`
-      if (k.includes('budget') || k.includes('price') || k.includes('预算')) {
-        label = `预算 ≤ ${v}元`
-        status = 'unmet'
-      }
     } else {
       label = String(v)
     }
@@ -50,28 +72,14 @@ const requirements = computed<RequirementItem[]>(() => {
     }
   }
 
-  if (result.length === 0) {
-    result.push(
-      { key: 'game', label: 'FPS 游戏', status: 'met' },
-      { key: 'wireless', label: '无线连接', status: 'met' },
-      { key: 'weight', label: '轻量化', status: 'met' },
-      { key: 'budget', label: '预算 ≤300元', status: 'unmet' }
-    )
-  }
-
-  const order = ['FPS 游戏', '无线连接', '轻量化', '预算 ≤ 300元']
-  return result.sort((a, b) => {
-    const aIndex = order.indexOf(a.label)
-    const bIndex = order.indexOf(b.label)
-    return (aIndex === -1 ? order.length : aIndex) - (bIndex === -1 ? order.length : bIndex)
-  })
+  return result
 })
 </script>
 
 <template>
   <div class="my-requirements-card">
     <div class="card-title">我的需求</div>
-    <div class="chips-row">
+    <div v-if="requirements.length" class="chips-row">
       <span
         v-for="item in requirements"
         :key="item.key"
@@ -79,16 +87,17 @@ const requirements = computed<RequirementItem[]>(() => {
         :class="item.status"
       >
         <span v-if="item.status === 'met'" class="circle-icon met-icon">
-          <CircleCheck :size="15" :stroke-width="1.8" />
+          <CircleCheck :size="11" :stroke-width="2.2" />
         </span>
 
         <span v-else-if="item.status === 'unmet'" class="circle-icon unmet-icon">
-          <CircleX :size="15" :stroke-width="1.8" />
+          <CircleX :size="11" :stroke-width="2.2" />
         </span>
 
         <span class="tag-text">{{ item.label }}</span>
       </span>
     </div>
+    <p v-else class="empty-state">输入需求后将自动提取关键词</p>
   </div>
 </template>
 
@@ -117,20 +126,25 @@ const requirements = computed<RequirementItem[]>(() => {
 
 .chips-row {
   display: flex;
-  gap: 4px;
-  flex-wrap: nowrap;
-  overflow: hidden;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+
+.empty-state {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 11px;
 }
 
 .compact-req-tag {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
-  height: 25px;
+  gap: 2px;
+  height: 21px;
   min-width: 0;
-  padding: 0 5px;
-  border-radius: 8px;
-  font-size: 10px;
+  padding: 0 4px;
+  border-radius: 7px;
+  font-size: 9px;
   font-weight: 500;
   line-height: 1;
   background: rgba(255, 255, 255, 0.05);
@@ -151,8 +165,8 @@ const requirements = computed<RequirementItem[]>(() => {
 }
 
 .compact-req-tag svg {
-  width: 13px;
-  height: 13px;
+  width: 11px;
+  height: 11px;
   flex: 0 0 auto;
 }
 
@@ -187,8 +201,8 @@ const requirements = computed<RequirementItem[]>(() => {
 
 @media (max-width: 390px) {
   .compact-req-tag {
-    font-size: 10px;
-    padding: 0 5px;
+    font-size: 9px;
+    padding: 0 4px;
   }
 }
 
@@ -203,29 +217,32 @@ const requirements = computed<RequirementItem[]>(() => {
 .card-title { color: #24252b; }
 
 .compact-req-tag {
-  color: #616269;
-  background: #f5f5f6;
+  color: #707178;
+  background: #f7f7f8;
+  border: 1px solid #e7e7e9;
 }
 
 .compact-req-tag.met {
-  color: #008f89;
-  background: #edfbfa;
-  border-color: rgba(0, 207, 200, 0.2);
+  color: #009f99;
+  background: #edfffd;
+  border-color: #8de5e1;
 }
 
-.met-icon { color: #00a69f; }
+.met-icon { color: #00b5ad; }
 
 .compact-req-tag.unmet {
-  color: #d91f46;
-  background: #fff0f3;
-  border-color: rgba(254, 44, 85, 0.16);
+  color: #ff3f65;
+  background: #fff3f5;
+  border-color: #ffb5c5;
 }
 
-.unmet-icon { color: #fe2c55; }
+.unmet-icon { color: #ff3f65; }
 
 .compact-req-tag.neutral {
   color: #707178;
   background: #f5f5f6;
   border-color: #e8e8ea;
 }
+
+.empty-state { color: #8a8b91; }
 </style>

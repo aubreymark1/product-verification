@@ -54,16 +54,13 @@ const isAddingNewRequirement = ref(false)
 // Selected product candidate state
 const selectedCandidateId = ref('')
 const identifyResult = ref<IdentifyResult | null>(null)
-const candidates = computed(() => identifyResult.value?.candidates ?? [])
+const displayedCandidates = ref<CandidateProduct[]>([])
+const candidates = computed(() => displayedCandidates.value)
 const selectedCandidate = computed(() => candidates.value.find((item) => item.product_id === selectedCandidateId.value) ?? null)
 const rawQueryText = ref('')
 const isRecording = ref(false)
 const videoError = ref('')
 const identifyError = ref('')
-
-// Options selections
-const selectedBudget = ref('<300')
-const selectedConnection = ref('无线')
 
 // AI Analysis Loading steps
 const aiProgress = ref(68)
@@ -115,6 +112,7 @@ async function loadVideo(videoId: string) {
     selectionBox.value = null
     selectionDisplay.value = null
     identifyResult.value = null
+    displayedCandidates.value = []
     identifyError.value = ''
   } catch (error) {
     videoError.value = '视频信息加载失败，请重试或重新上传视频'
@@ -128,16 +126,105 @@ async function identifyObject(videoId: string, selection: BBox, contextText = ''
   try {
     const result = await api.identify(videoId, timestamp, selection, contextText)
     identifyResult.value = result
+    displayedCandidates.value = await selectDisplayCandidates(result.candidates, selection)
     session.setIdentification(result)
-    if (result.candidates[0]) selectCandidate(result.candidates[0])
+    if (displayedCandidates.value[0]) selectCandidate(displayedCandidates.value[0])
   } catch (error) {
     identifyResult.value = null
+    displayedCandidates.value = []
     identifyError.value = '未识别到可确认商品，请重新圈选或上传视频'
     session.setIdentification({ category_id: '', category_name: '', visual_attributes: {}, candidates: [] })
     console.warn('视频对象识别失败，等待用户重新选择或上传视频', error)
   } finally {
     isIdentifying.value = false
   }
+}
+
+type RgbColor = readonly [number, number, number]
+
+function averageCanvasColor(context: CanvasRenderingContext2D, size: number): RgbColor | null {
+  const pixels = context.getImageData(0, 0, size, size).data
+  let red = 0
+  let green = 0
+  let blue = 0
+  let count = 0
+
+  for (let index = 0; index < pixels.length; index += 4) {
+    const [r, g, b, alpha] = [pixels[index], pixels[index + 1], pixels[index + 2], pixels[index + 3]]
+    if (alpha < 128) continue
+    const chroma = Math.max(r, g, b) - Math.min(r, g, b)
+    if (chroma < 24) continue
+    red += r
+    green += g
+    blue += b
+    count += 1
+  }
+
+  return count > 0 ? [red / count, green / count, blue / count] : null
+}
+
+function selectionColor(selection: BBox): RgbColor | null {
+  const video = videoRef.value
+  if (!video || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return null
+
+  const width = Math.max(1, Math.round(video.videoWidth * selection.width))
+  const height = Math.max(1, Math.round(video.videoHeight * selection.height))
+  const left = Math.round(video.videoWidth * selection.x)
+  const top = Math.round(video.videoHeight * selection.y)
+  const canvas = document.createElement('canvas')
+  const sampleSize = 24
+  canvas.width = sampleSize
+  canvas.height = sampleSize
+  const context = canvas.getContext('2d', { willReadFrequently: true })
+  if (!context) return null
+
+  context.drawImage(video, left, top, width, height, 0, 0, sampleSize, sampleSize)
+  return averageCanvasColor(context, sampleSize)
+}
+
+async function imageColor(imageUrl: string): Promise<RgbColor | null> {
+  return new Promise((resolve) => {
+    const image = new Image()
+    image.crossOrigin = 'anonymous'
+    image.onload = () => {
+      const canvas = document.createElement('canvas')
+      const sampleSize = 24
+      canvas.width = sampleSize
+      canvas.height = sampleSize
+      const context = canvas.getContext('2d', { willReadFrequently: true })
+      if (!context) {
+        resolve(null)
+        return
+      }
+      context.drawImage(image, 0, 0, sampleSize, sampleSize)
+      resolve(averageCanvasColor(context, sampleSize))
+    }
+    image.onerror = () => resolve(null)
+    image.src = new URL(imageUrl, window.location.origin).href
+  })
+}
+
+function colorDistance(first: RgbColor, second: RgbColor) {
+  return Math.hypot(first[0] - second[0], first[1] - second[1], first[2] - second[2])
+}
+
+async function selectDisplayCandidates(allCandidates: CandidateProduct[], selection: BBox): Promise<CandidateProduct[]> {
+  const [exactCandidate, ...alternatives] = allCandidates
+  if (!exactCandidate) return []
+  if (alternatives.length === 0) return [exactCandidate]
+
+  const targetColor = selectionColor(selection)
+  if (!targetColor) return [exactCandidate, alternatives[0]]
+
+  const colorMatches = await Promise.all(alternatives.map(async (candidate) => ({
+    candidate,
+    color: candidate.image_url ? await imageColor(candidate.image_url) : null,
+  })))
+  const sameColorCandidate = colorMatches
+    .filter((item): item is { candidate: CandidateProduct; color: RgbColor } => item.color !== null)
+    .sort((first, second) => colorDistance(targetColor, first.color) - colorDistance(targetColor, second.color))[0]
+
+  return [exactCandidate, sameColorCandidate?.candidate ?? alternatives[0]]
 }
 
 function clamp(value: number) {
@@ -247,6 +334,7 @@ async function handleUpload(event: Event) {
     session.setProduct({ product_id: '', product_name: '', confidence: 0, image_url: null })
     videoSrc.value = video.video_url ?? URL.createObjectURL(file)
     identifyResult.value = null
+    displayedCandidates.value = []
     selectionBox.value = null
     selectionDisplay.value = null
     videoTitle.value = video.title
@@ -313,8 +401,6 @@ function toggleVoiceRecording() {
     } else {
       if (voiceTimer) clearInterval(voiceTimer)
       isRecording.value = false
-      selectedBudget.value = '<300'
-      selectedConnection.value = '无线'
     }
   }, 60)
 }
@@ -332,10 +418,7 @@ async function startAiAnalysis() {
   }, 300)
 
   try {
-    const conditions = {
-      budget: selectedBudget.value,
-      connection: selectedConnection.value,
-    }
+    const conditions: Record<string, unknown> = {}
     const previous = verificationResult.value ?? session.verificationResult
     const res = isAddingNewRequirement.value && previous
       ? await api.rerunRecommendation({
@@ -659,7 +742,11 @@ async function openEvidenceDetail(id: string) {
             </div>
           </div>
 
-          <RequirementTags :conditions="verificationResult?.conditions" />
+          <RequirementTags
+            :conditions="verificationResult?.conditions"
+            :raw-query="verificationResult?.raw_query || rawQueryText"
+            :requirement-analysis="verificationResult?.requirement_analysis"
+          />
 
           <div class="conclusion-banner">
             <span class="check-icon" aria-hidden="true">

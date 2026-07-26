@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { ChevronLeft } from 'lucide-vue-next'
 
+import PhonePreviewShell from '../../components/common/PhonePreviewShell.vue'
 import StatusMessage from '../../components/common/StatusMessage.vue'
 import AiAnalysisLoading from '../verification/AiAnalysisLoading.vue'
 import { useSessionStore } from '../../app/store/session'
@@ -67,11 +69,20 @@ async function submit() {
 </script>
 
 <template>
-  <section class="conditions-page-shell">
-    <div class="page-header">
-      <div class="header-badge">STEP 02 · 动态条件配置</div>
-      <h1 class="page-title">个性化使用需求</h1>
-    </div>
+  <PhonePreviewShell>
+    <section class="conditions-page-shell">
+      <header class="phone-page-header">
+        <button type="button" aria-label="返回上一级" @click="router.back()">
+          <ChevronLeft :size="21" :stroke-width="1.9" />
+        </button>
+        <h1>继续筛选</h1>
+        <span aria-hidden="true"></span>
+      </header>
+
+      <div class="page-header">
+        <div class="header-badge">STEP 02 · 动态条件配置</div>
+        <h2 class="page-title">个性化使用需求</h2>
+      </div>
 
     <!-- AI Loading overlay during submit -->
     <AiAnalysisLoading v-if="submitting" />
@@ -99,14 +110,46 @@ async function submit() {
         </div>
       </form>
     </template>
-  </section>
+    </section>
+  </PhonePreviewShell>
 </template>
 
 <style scoped>
 .conditions-page-shell {
-  max-width: 680px;
-  margin: 0 auto;
+  width: 100%;
+  padding: 0 14px 24px;
+  box-sizing: border-box;
   overflow-x: hidden;
+}
+
+.phone-page-header {
+  min-height: 56px;
+  margin: 0 -14px 18px;
+  padding: 0 14px;
+  display: grid;
+  grid-template-columns: 36px 1fr 36px;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid #ececee;
+}
+
+.phone-page-header button {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  color: #34353b;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.phone-page-header h1 {
+  margin: 0;
+  color: #161823;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
 }
 
 .page-header {
@@ -126,9 +169,9 @@ async function submit() {
 }
 
 .page-title {
-  font-size: 26px;
+  font-size: 22px;
   font-weight: 800;
-  color: #f8fafc;
+  color: #161823;
   margin: 0 0 6px;
 }
 
@@ -144,12 +187,11 @@ async function submit() {
 }
 
 .form-glass-card {
-  background: rgba(15, 23, 42, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 20px;
-  padding: 24px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(12px);
+  background: #ffffff;
+  border: 1px solid #ececee;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 4px 14px rgba(22, 24, 35, 0.06);
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -217,18 +259,18 @@ async function submit() {
   box-sizing: border-box;
   padding: 14px 16px;
   resize: vertical;
-  color: #f8fafc;
+  color: #161823;
   font: inherit;
   font-size: 14px;
   line-height: 1.6;
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #f7f7f8;
+  border: 1px solid #e7e7e9;
   border-radius: 10px;
 }
 
 .requirements-input:focus {
   outline: none;
-  border-color: #38bdf8;
-  box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
+  border-color: rgba(254, 44, 85, 0.48);
+  box-shadow: 0 0 0 3px rgba(254, 44, 85, 0.08);
 }
 </style>

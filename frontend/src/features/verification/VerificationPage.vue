@@ -10,6 +10,7 @@ import {
 } from 'lucide-vue-next'
 
 import StatusMessage from '../../components/common/StatusMessage.vue'
+import PhonePreviewShell from '../../components/common/PhonePreviewShell.vue'
 import EvidenceSearchHeading from '../../components/evidence/EvidenceSearchHeading.vue'
 import EvidenceSection from '../../mock/EvidenceSection.vue'
 import EvidenceSourceDetail from '../../mock/EvidenceSourceDetail.vue'
@@ -141,13 +142,14 @@ async function rerunRecommendation() {
 </script>
 
 <template>
+  <PhonePreviewShell>
   <section class="verification-page-shell">
     <!-- 顶部导航 -->
     <div class="page-top-header">
       <button
         type="button"
         class="back-link"
-        @click="router.push('/conditions')"
+        @click="router.back()"
       >
         <ChevronLeft :size="17" :stroke-width="1.8" />
         <span>返回设置</span>
@@ -200,6 +202,8 @@ async function rerunRecommendation() {
       <!-- 用户需求标签 -->
       <RequirementTags
         :conditions="session.verificationResult.conditions"
+        :raw-query="session.verificationResult.raw_query"
+        :requirement-analysis="session.verificationResult.requirement_analysis"
       />
 
       <!-- 验真总结 -->
@@ -263,14 +267,16 @@ async function rerunRecommendation() {
       :message="error"
     />
   </section>
+  </PhonePreviewShell>
 </template>
 
 <style scoped>
 .verification-page-shell {
   width: 100%;
-  max-width: 430px;
+  max-width: none;
   margin: 0 auto;
-  padding-bottom: 44px;
+  padding: 8px 14px 28px;
+  box-sizing: border-box;
 
   font-family:
     "Inter",
@@ -306,7 +312,11 @@ async function rerunRecommendation() {
   display: grid;
   grid-template-columns: minmax(84px, 1fr) auto minmax(36px, 1fr);
   align-items: center;
-  margin-bottom: 12px;
+  min-height: 48px;
+  margin: -8px -14px 14px;
+  padding: 0 14px;
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid #ececee;
 }
 
 .back-link {
@@ -317,7 +327,7 @@ async function rerunRecommendation() {
   padding: 0;
 
   font-size: 14px;
-  color: #94a3b8;
+  color: #34353b;
 
   background: none;
   border: none;
@@ -331,7 +341,7 @@ async function rerunRecommendation() {
   font-weight: 500;
   line-height: 1.3;
   letter-spacing: 0;
-  color: #f8fafc;
+  color: #161823;
 }
 
 .share-btn {
@@ -341,10 +351,10 @@ async function rerunRecommendation() {
   place-items: center;
   justify-self: end;
 
-  color: #94a3b8;
+  color: #34353b;
 
-  background: rgba(30, 41, 59, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #f5f5f6;
+  border: 1px solid #e7e7e9;
   border-radius: 50%;
   cursor: pointer;
 }

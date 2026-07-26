@@ -36,6 +36,19 @@ export const useSessionStore = defineStore('session', () => {
     selectedPriceProduct.value = product
   }
 
+  /**
+   * 从“继续筛选”重新进入标准验真入口。
+   * 保留当前视频，清除上一轮识别、商品与验真结论，避免把旧结果带入新一轮。
+   */
+  function restartVerification() {
+    categoryId.value = ''
+    selectedProduct.value = null
+    identifyResult.value = null
+    verificationResult.value = null
+    selectedPriceProduct.value = null
+    inheritedConditions.value = {}
+  }
+
   return {
     videoId,
     categoryId,
@@ -52,5 +65,6 @@ export const useSessionStore = defineStore('session', () => {
     setProduct,
     setVerificationResult,
     setSelectedPriceProduct,
+    restartVerification,
   }
 })

@@ -1,14 +1,25 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import { ChevronLeft } from 'lucide-vue-next'
+
+import PhonePreviewShell from '../../components/common/PhonePreviewShell.vue'
 
 const router = useRouter()
 </script>
 
 <template>
+  <PhonePreviewShell>
   <section class="comparison-page-shell">
+    <header class="comparison-header">
+      <button type="button" aria-label="返回上一级" @click="router.back()">
+        <ChevronLeft :size="21" :stroke-width="1.9" />
+      </button>
+      <h1>多商品横评</h1>
+      <span aria-hidden="true"></span>
+    </header>
     <div class="page-header">
       <div class="badge">STEP 04 · 第二阶段入口</div>
-      <h1>多商品横评对比</h1>
+      <h2>多商品横评对比</h2>
       <p class="subtitle">第一版保留稳定的大模型多方案横向对比队列与数据合同入口</p>
     </div>
 
@@ -43,18 +54,51 @@ const router = useRouter()
       </div>
 
       <div class="action-row">
-        <button class="back-btn" @click="router.push('/verification/res_demo')">
+        <button class="back-btn" @click="router.back()">
           &lt; 返回主验真结果
         </button>
       </div>
     </div>
   </section>
+  </PhonePreviewShell>
 </template>
 
 <style scoped>
 .comparison-page-shell {
-  max-width: 720px;
+  width: 100%;
+  padding: 0 14px 24px;
+  box-sizing: border-box;
   margin: 0 auto;
+}
+
+.comparison-header {
+  min-height: 56px;
+  margin: 0 -14px 18px;
+  padding: 0 14px;
+  display: grid;
+  grid-template-columns: 36px 1fr 36px;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid #ececee;
+}
+
+.comparison-header button {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  color: #34353b;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.comparison-header h1 {
+  margin: 0;
+  color: #161823;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
 }
 
 .badge {
@@ -69,26 +113,26 @@ const router = useRouter()
   margin-bottom: 10px;
 }
 
-h1 {
-  font-size: 28px;
+h2 {
+  font-size: 22px;
   font-weight: 800;
-  color: #f8fafc;
+  color: #161823;
   margin: 0 0 8px;
 }
 
 .subtitle {
-  color: #94a3b8;
+  color: #707178;
   font-size: 14px;
 }
 
 .comparison-panel {
-  background: rgba(15, 23, 42, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 24px;
-  padding: 32px;
+  background: #ffffff;
+  border: 1px solid #ececee;
+  border-radius: 16px;
+  padding: 20px 14px;
   text-align: center;
   backdrop-filter: blur(12px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 14px rgba(22, 24, 35, 0.06);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -101,13 +145,13 @@ h1 {
 
 h2 {
   font-size: 20px;
-  color: #f8fafc;
+  color: #161823;
   margin: 0;
 }
 
 .desc-text {
   font-size: 14px;
-  color: #cbd5e1;
+  color: #616269;
   max-width: 540px;
   line-height: 1.6;
 }
@@ -115,8 +159,8 @@ h2 {
 .mock-comparison-table {
   width: 100%;
   max-width: 560px;
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #f7f7f8;
+  border: 1px solid #ececee;
   border-radius: 16px;
   overflow: hidden;
   margin: 10px 0;
@@ -130,18 +174,18 @@ h2 {
 }
 
 .table-header {
-  background: rgba(15, 23, 42, 0.8);
+  background: #f1f1f2;
   font-weight: 700;
-  color: #94a3b8;
+  color: #707178;
 }
 
 .active-col {
-  color: #38bdf8;
+  color: #fe2c55;
 }
 
 .table-row {
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  color: #cbd5e1;
+  border-top: 1px solid #ececee;
+  color: #4d4e54;
 }
 
 .table-row .label {
@@ -150,7 +194,7 @@ h2 {
 }
 
 .table-row .highlight {
-  color: #34d399;
+  color: #00a69f;
   font-weight: 800;
 }
 

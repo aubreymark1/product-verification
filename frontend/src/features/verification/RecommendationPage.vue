@@ -70,6 +70,11 @@ function selectRecommendation(product: DisplayRecommendation) {
   if (selected) session.setSelectedPriceProduct(selected)
   router.push('/price-comparison')
 }
+
+async function continueFiltering() {
+  session.restartVerification()
+  await router.push('/video')
+}
 </script>
 
 <template>
@@ -163,7 +168,7 @@ function selectRecommendation(product: DisplayRecommendation) {
     </main>
 
     <footer class="recommendation-footer">
-      <button type="button" class="secondary-action" @click="router.push('/conditions')">继续筛选</button>
+      <button type="button" class="secondary-action" @click="continueFiltering">继续筛选</button>
     </footer>
         </section>
       </div>
